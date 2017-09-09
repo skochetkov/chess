@@ -16,13 +16,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 public class King implements Piece{
-
+	public String pieceID = "0";
 	private HBox ui;
 	private PieceColor color;
 	private List<Pattern> patterns = new ArrayList<>();
 	
-	public King(PieceColor color) {
+	public King(PieceColor color, String id) {
 		this.color = color;
+		setId(id);
 		init();
 	}
 	
@@ -270,7 +271,9 @@ public class King implements Piece{
 				}
 				
 				if(isValidForAttack(temp)) {
-					moves.add(temp);
+					Cell victim = ChessBoardController.cells[temp.getRow()][temp.getCol()];
+					//temp = victim.copy();
+					moves.add(victim);
 					break;
 				}
 				else if(isEmpty(temp, includeImpossible)) {
@@ -427,5 +430,14 @@ public class King implements Piece{
 		}
 		
 	}
+	
+	@Override
+	public void setId(String i) {
+		pieceID = i;
+	}
 
+	@Override
+	public String getId() {
+		return pieceID;
+	}
 }

@@ -67,4 +67,16 @@ public class Dummy  implements Piece{
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	@Override
+	public void setId(String id) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getId() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

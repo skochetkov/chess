@@ -43,6 +43,16 @@ public class Zhuli {
 		
 		System.out.println("Zhuli is thinking... Please wait....");
 		
+		//imitation of thinking
+		//TODO - do not forget to remove it when it really slows down
+		for(int i = 0; i < 100000; i++) {
+			for(int j = 0; j < 10000; j++) {
+				for(int k = 0; k < 1000; k++) {
+					;
+				}
+			}
+		}
+		
 		//first, Zhuli checks if she is in danger
 		if(api.checkIfItIsCheck(GameStatus.BLACK_MOVE)) {
 			
@@ -72,8 +82,6 @@ public class Zhuli {
 		}
 		List<Cell> pieces = api.getPiecesByColor(color);
 		
-		Cell selected = null;
-		
 		Move move = getGoodMove(pieces);
 		//Now we have (may be) a list of good moves, let's select one
 		if(move.getCondition() != Condition.UNKNOWN) {
@@ -89,10 +97,21 @@ public class Zhuli {
 				return;
 			}
 			api.doMove(move);
+			//return;
+		}
+		//this is probably mate
+		else {
+			api.changeStatus(GameStatus.GAME_OVER);
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("");
+			alert.setHeaderText("Game is Over Alert");
+			String s = "Game is Over";
+			alert.setContentText(s);
+			alert.show();
 			return;
 		}
 		//if there is no "good" move, then just do random move
-		while(true) {
+		/*while(true) {
 			int value = rand.nextInt(pieces.size()); 
 			selected = pieces.get(value);
 			
@@ -106,10 +125,11 @@ public class Zhuli {
 				api.doMove(possibleMoves.get(mv));
 				break;
 			}
-		}
+		}*/
 	}
 	
 	private Move getGoodMove(List<Cell> pieces) {
+		System.out.println("getGoodMove: enter");
 		List<Move> goodMoves = new ArrayList<>();
 		Cell opponentKing = api.getPiecesByTypeAndColor(PieceType.KING, opponentColor).get(0);
 		Cell myKing = api.getPiecesByTypeAndColor(PieceType.KING, color).get(0);
@@ -126,12 +146,16 @@ public class Zhuli {
 				possibleMoves = api.getAllPossibleMoves(piece);
 			}
 			
+			System.out.println("Possible moves for " + piece.getPiece().getType() + " ("+piece.getNotation()+"): " + possibleMoves.size());
+			
 			if(possibleMoves.size() == 0) {
 				continue;
 			}
 			
 			//THIS IS BIG TODO
 			for (Move m : possibleMoves) {
+				
+				if(!piece.equals(myKing) && isMoveVeryBad(m, myKing)) continue;
 				
 				if(m.getCondition() == Condition.ATTACK) {
 					//if by chance you can eat... well... the king... you can do it
@@ -150,11 +174,27 @@ public class Zhuli {
 		
 		if(goodMoves.size() == 0)
 			return new Move(Condition.UNKNOWN);
+		
+		System.out.println("Good moves:");
+		
+		for(Move m: goodMoves) {
+			System.out.println(m.getPiece().getType() + " " + m.getOriginal().getNotation() + ":" + m.getDistination().getNotation());
+		}
 				
 		int value = rand.nextInt(goodMoves.size()); 
 		Move move = goodMoves.get(value);
 		
 		return move;
+	}
+
+	/**
+	 * Checks if the move is very bad, e.g, opening my king to attacker
+	 * All other not good moves (e.g, opening Queen for attacker) will be handled in other place because it might be intention to do that way
+	 * @param m
+	 * @return
+	 */
+	private boolean isMoveVeryBad(Move move, Cell weakPiece) {
+		return api.isMoveVeryBad(move, weakPiece);
 	}
 
 	//TODO improve, it is very dummy solution right now

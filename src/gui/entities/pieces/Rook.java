@@ -16,13 +16,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 public class Rook implements Piece{
-
+	public String pieceID = "0";
 	private HBox ui;
 	private PieceColor color;
 	private List<Pattern> patterns = new ArrayList<>();
 	
-	public Rook(PieceColor color) {
+	public Rook(PieceColor color, String id) {
 		this.color = color;
+		setId(id);
 		init();
 	}
 	
@@ -380,5 +381,15 @@ public class Rook implements Piece{
 			return false;
 		}
 		
+	}
+
+	@Override
+	public void setId(String i) {
+		pieceID = i;
+	}
+
+	@Override
+	public String getId() {
+		return pieceID;
 	}
 }

@@ -6,6 +6,7 @@ import gui.entities.Cell;
 import gui.entities.Move;
 import gui.entities.Piece;
 import gui.entities.types.GameStatus;
+import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import model.ChessGameManager;
@@ -34,7 +35,7 @@ public class ChessGameConnect {
 	}
 	
 	public boolean doMove(Move move) {
-		manager.doTheMove(move.getOriginal(), move.getDistination());
+		manager.doMove(move);
 		return true;
 	}
 
@@ -76,5 +77,13 @@ public class ChessGameConnect {
 
 	public List<Move> getAllPossibleSafeMoves(Cell piece) {
 		return manager.getAllPossibleSafeMoves(piece);
+	}
+
+	public boolean isMoveVeryBad(Move move, Cell weakPiece) {
+		return manager.isMoveVeryBad(move, weakPiece);
+	}
+	
+	public MoveType isCastlingAllowed(Cell selected, Cell newLocation) {
+		return manager.isCastlingAllowed(selected, newLocation);
 	}
 }

@@ -16,13 +16,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 public class Queen implements Piece{
-
+	public String pieceID = "0";
 	private HBox ui;
 	private PieceColor color;
 	private List<Pattern> patterns = new ArrayList<>();
 	
-	public Queen(PieceColor color) {
+	public Queen(PieceColor color, String id) {
 		this.color = color;
+		setId(id);
 		init();
 	}
 	
@@ -324,7 +325,7 @@ public class Queen implements Piece{
 	public boolean isItEatable(Cell myCell, Cell newVictomCell, Cell oldVictomCell) {
 		for(Pattern pattern : getPatterns(Condition.MOVE)) {
 			Cell temp = myCell.copy();
-			boolean isValid = true;
+			boolean toProceed = true;
 			
 			//traverse till we meet non empty cell or border 
 			while(true) {
@@ -389,19 +390,27 @@ public class Queen implements Piece{
 							default:
 						}
 					}
-					if(isValidForPotentialAttack(temp, newVictomCell, oldVictomCell)) {
-						isValid = false;
+					
+					if((temp.getCol() < 0 || temp.getCol() > 7) || (temp.getRow() < 0 || temp.getRow() > 7)) {
+						toProceed = false;
 						break;
 					}
+					else if(temp.equals(newVictomCell)) {
+						return true;
+					}
+					/*if(isValidForPotentialAttack(temp, newVictomCell, oldVictomCell)) {
+						toProceed = false;
+						break;
+					}*/
 					else if(isPotentiallyEmpty(temp, newVictomCell, oldVictomCell)) {
 						continue;
 					}
 					else {
-						isValid = false;
+						toProceed = false;
 						break;
 					}
 				}
-				if(!isValid) return true;
+				if(!toProceed) break;
 			} 
 		}
 		return false;
@@ -446,5 +455,15 @@ public class Queen implements Piece{
 			return false;
 		}
 		
+	}
+	
+	@Override
+	public void setId(String i) {
+		pieceID = i;
+	}
+
+	@Override
+	public String getId() {
+		return pieceID;
 	}
 }

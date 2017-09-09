@@ -14,6 +14,7 @@ import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
+import gui.entities.types.MoveType;
 import gui.entities.types.Requests;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -132,9 +133,36 @@ public class ChessGameManager {
 				//take selected cell
 				Cell selected = board.getSelectedCell();
 				param = getRealCell(param);
-				if(!isMoveLegal(selected, param))
+				MoveType moveType = isMoveLegal(selected, param);
+				if(moveType == MoveType.ILLIGAL)
 					return;
-				doTheMove(selected, param);
+				
+				switch (moveType) {
+					case REGULAR:
+						doMove(new Move(selected.getPiece(), selected, param, Condition.MOVE));
+						break;
+					case CASTLING_ON_LEFT: {
+						doMove(new Move(selected.getPiece(), selected, param, Condition.MOVE));
+						//get rook and move it too
+						Cell rook = new Cell(0, selected.getRow());
+						rook = getRealCell(rook);
+						Cell newPlace = new Cell(3, selected.getRow());
+						doMove(new Move(rook.getPiece(), rook, newPlace, Condition.MOVE));
+						break;
+					}
+					case CASTLING_ON_RIGHT: {
+						doMove(new Move(selected.getPiece(), selected, param, Condition.MOVE));
+						//get rook and move it too
+						Cell rook = new Cell(7, selected.getRow());
+						rook = getRealCell(rook);
+						Cell newPlace = new Cell(5, selected.getRow());
+						doMove(new Move(rook.getPiece(), rook, newPlace, Condition.MOVE));
+						break;
+					}
+					default:
+						break;
+				}
+				
 				//TODO repaint here somehow
 				//////
 				status = GameStatus.BLACK_MOVE;
@@ -206,8 +234,9 @@ public class ChessGameManager {
 		//Get the king
 		Cell king = getPiecesByTypeAndColor(PieceType.KING, color).get(0);
 		System.out.println("check if king can be defended by his pieces");
-		// if king can be defended by his pieces
-		List<Move>  defendingMoves = checkIfICanBeDefended(king, color);
+		//TODO (exclude piece itself) if king can be defended by his pieces except the king itself
+		List<Move>  defendingMoves = getWhoCanDefendMe(king, color);
+		
 		if(defendingMoves.size() > 0) {
 			System.out.println("I can be saved!");
 		}
@@ -215,6 +244,8 @@ public class ChessGameManager {
 		List<Cell> safeMoves = getAllSafeMoves(king);
 		List<Cell> safeCaptures = getAllSafeCaptures(king);
 		System.out.println("Checking if the king has safe moves or safe captures....");
+		
+		System.out.println("defendingMoves.size() : "+defendingMoves.size()+" safeMoves.size() : "+safeMoves.size()+" safeCaptures.size() : "+safeCaptures.size());
 		//rear case where there is no way to move
 		if(defendingMoves.size() > 0 || safeMoves.size() > 0 || safeCaptures.size() > 0) {
 			if(safeMoves.size() > 0) {
@@ -237,9 +268,15 @@ public class ChessGameManager {
 		return defendingMoves;
 	}
 	
-	public List<Move> checkIfICanBeDefended(Cell piece, PieceColor color) {
+	/**
+	 * Bring the list of all defending pieces and their defending moves except piece itself
+	 * @param piece
+	 * @param color
+	 * @return
+	 */
+	public boolean checkIfICanBeDefended(Cell piece, PieceColor color) {
 		
-		return getWhoCanDefendMe(piece, color);
+		return (getWhoCanDefendMe(piece, color).size() > 0)? true : false;
 	}
 	
 	/**
@@ -258,6 +295,7 @@ public class ChessGameManager {
 		//list of all attackers one by one
 		for(Cell attacker : listOfAllWhoAttacksMe) {
 			for(Cell myPiece : listOfAllMyPieces) {
+				if(myPiece.equals(piece)) continue;
 				//check if one or more my pieces can beat attacker
 				List<Cell> captureMoves = myPiece.getPiece().getAllCaptures(myPiece, false);
 				for(Cell cm : captureMoves) {
@@ -417,17 +455,16 @@ public class ChessGameManager {
 		return pieces;
 	}
 	
-	public List<Cell> getAttackingPiecesByColor(PieceColor color) {
+	public List<Cell> getAttackingPiecesByColor(Cell newPieceLocation, Cell oldPieceLocation, PieceColor color) {
 		List<Cell> pieces = new ArrayList<>();
 		
 		List<Cell> allPieces = getPiecesByColor(color);
 		
 		for(Cell p : allPieces) {
-			List<Cell> captureMoves = p.getPiece().getAllCaptures(p, false);
-			if(captureMoves.size() == 0)
-				continue;
 			
-			pieces.add(p);
+			if(p.getPiece().isItEatable(p, newPieceLocation, oldPieceLocation)) {
+				pieces.add(p);
+			}
 		}
 		
 		return pieces;
@@ -460,6 +497,11 @@ public class ChessGameManager {
 		return pieces;
 	}
 	
+	/**
+	 * Bring the list of all defending pieces and their defending moves except piece itself
+	 * @param me
+	 * @return
+	 */
 	public List<Cell> getWhoCanDefendMe(Cell me) {
 		List<Cell> listOfAllWhoAttacksMe = getWhoEndangersMe(me);
 		List<Cell> listOfAllMyPieces = getPiecesByColor(me.getPiece().getColor());
@@ -492,7 +534,7 @@ public class ChessGameManager {
 		return false;
 	}
 
-	private boolean isMoveLegal(Cell selected, Cell newLocation) {
+	private MoveType isMoveLegal(Cell selected, Cell newLocation) {
 		
 		//take its figure
 		Piece piece = selected.getPiece();
@@ -501,8 +543,9 @@ public class ChessGameManager {
 		
 		for(Cell move : moves) {
 			//if new location is in the list of legal moves and it is not occupied by other pieces
-			if(move.equals(newLocation) && newLocation.isEmpty())
-				return true;
+			if(move.equals(newLocation) && newLocation.isEmpty()) {
+				return MoveType.REGULAR;
+			}
 		}
 		
 		List<Cell> captureMoves = piece.getAllCaptures(selected, false);
@@ -510,18 +553,73 @@ public class ChessGameManager {
 		for(Cell move : captureMoves) {
 			//if new location is in the list of legal moves and it is not occupied by other pieces
 			if(move.equals(newLocation) && !newLocation.isEmpty() && selected.getPiece().getColor() != newLocation.getPiece().getColor())
-				return true;
+				return MoveType.REGULAR;
 		}
 		
-		return false;
+		// there are a few exceptions here (it is better to handle them here instead of delegating to piece's logic)
+		//Get the king
+		//1. Castling
+		MoveType castlingType = isCastlingAllowed(selected, newLocation);
+		if(castlingType == MoveType.CASTLING_ON_LEFT || castlingType == MoveType.CASTLING_ON_RIGHT) {
+			return castlingType;
+		}
+		return MoveType.ILLIGAL;
 	}
 	
-	public void doTheMove(Cell selected, Cell newLocation) {
+	public MoveType isCastlingAllowed(Cell selected, Cell newLocation) {
+		MoveType type = MoveType.ILLIGAL;
+		
+		if(selected.getPiece().getType() == PieceType.KING) {
+			List<Move> recordedMoves = board.getRecordedMovesForPieceId(selected.getPiece());
+			//if no recorded moves for king and for rook
+			if(recordedMoves.isEmpty() && newLocation.isEmpty() 
+					&& (newLocation.getRow() == selected.getRow()) && 
+					(newLocation.getCol() == (selected.getCol() - 2) || (newLocation.getCol() == selected.getCol() + 2))) {
+				
+				Cell rook = null;
+				boolean othersEmpty = false;
+				//if castling is on the left side, check if there is a rook is there
+				if(newLocation.getCol() == (selected.getCol() - 2)) {
+					rook = new Cell(0, selected.getRow());
+					Cell one = new Cell(1, selected.getRow());
+					Cell three = new Cell(3, selected.getRow());
+					if(getRealCell(one).isEmpty() && getRealCell(three).isEmpty()) {
+						othersEmpty = true;
+						type = MoveType.CASTLING_ON_LEFT;
+					}
+					
+				}
+				else {
+					rook = new Cell(7, selected.getRow());
+					Cell six = new Cell(6, selected.getRow());
+					if(getRealCell(six).isEmpty()) {
+						othersEmpty = true;
+						type = MoveType.CASTLING_ON_RIGHT;
+					}
+				}
+				
+				if(getRealCell(rook).getPiece().getType() == PieceType.ROOK && getRealCell(rook).getPiece().getColor() == selected.getPiece().getColor()) {
+					
+					//And there are all empty spaces between the king and the rook
+					if(othersEmpty)
+						return type;
+				}
+			}
+		}
+		
+		return type;
+	}
+
+	public void doMove(Move move) {
 		//take its figure
+		Cell selected = move.getOriginal();
+		Cell newLocation = move.getDistination();
+		
 		Piece piece = getRealCell(selected).getPiece();
 		newLocation = getRealCell(newLocation);
 		System.out.println("###MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
 		
+		board.recordMove(move);
 		//if it has opponents figure, eat it
 		//if(newLocation.getPiece() != null) {
 		//	newLocation.setPiece(piece);
@@ -622,16 +720,25 @@ public class ChessGameManager {
 			color = PieceColor.WHITE;
 		else
 			color = PieceColor.BLACK;
-		List<Cell> attackers = getAttackingPiecesByColor(color);
 		
 		boolean isSafeCapture = true;
-		
+		//TODO - something wrong here - fix it
 		for(Cell myCapture : allCaptures) {
-			for(Cell attackerCapture: attackers) {
-				//if my capture is under attack
-				if(myCapture.equals(attackerCapture))
-					isSafeCapture = false;
-			}
+			List<Cell> attackers = getAttackingPiecesByColor(myCapture, piece, color);
+			//if there is at least one attacker who can eat, it is not safe
+			if(attackers.size() > 0) 
+				isSafeCapture = false;
+			
+			/*for(Cell attacker: attackers) {
+				//skip if attacker is victim 
+				if(myCapture.equals(attacker)) continue;
+				
+				List<Cell> attackerCaptures = attacker.getPiece().getAllCaptures(attacker, false);
+				for(Cell attackerCapture : attackerCaptures) {
+					if(myCapture.equals(attackerCapture))
+						isSafeCapture = false;
+				}
+			}*/
 			
 			if(isSafeCapture) {
 				safeCaptures.add(myCapture);
@@ -685,6 +792,29 @@ public class ChessGameManager {
 	public boolean changeStatus(GameStatus gameStatus) {
 		status = gameStatus;
 		return true;
+	}
+
+	public boolean isMoveVeryBad(Move move, Cell weakPiece) {
+		PieceColor opponentColor = null;
+		
+		if(weakPiece.getPiece().getColor() == PieceColor.BLACK) 
+			opponentColor = PieceColor.WHITE;
+		else
+			opponentColor = PieceColor.BLACK;
+		List<Cell> potentialAttackers = getPiecesByColor(opponentColor); 
+		
+		for(Cell attacker: potentialAttackers) {
+			List<Cell> captureMoves = attacker.getPiece().getAllPotentialCaptures(attacker);
+			for(Cell attackerMove : captureMoves) {
+				if(attackerMove.equals(weakPiece)) {
+					if(attacker.getPiece().isItEatable(attacker, weakPiece, move.getOriginal())) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
 	}
 
 }

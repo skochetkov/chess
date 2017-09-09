@@ -16,13 +16,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 public class Bishop implements Piece{
-
+	public String pieceID = "0";
 	private HBox ui;
 	private PieceColor color;
 	private List<Pattern> patterns = new ArrayList<>();
 	
-	public Bishop(PieceColor color) {
+	public Bishop(PieceColor color, String id) {
 		this.color = color;
+		setId(id);
 		init();
 	}
 	
@@ -368,4 +369,13 @@ public class Bishop implements Piece{
 		
 	}
 
+	@Override
+	public void setId(String i) {
+		pieceID = i;
+	}
+
+	@Override
+	public String getId() {
+		return pieceID;
+	}
 }

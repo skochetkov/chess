@@ -16,15 +16,16 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 public class Pawn implements Piece{
-
+	public String pieceID = "0";
 	private HBox ui;
 	private PieceColor color;
 	private List<Pattern> patterns = new ArrayList<>();
 	//flag to temporary include potential moves and captures, must be reset back after each use
 	private boolean includePotentials = false;
 	
-	public Pawn(PieceColor color) {
+	public Pawn(PieceColor color, String id) {
 		this.color = color;
+		setId(id);
 		init();
 	}
 	
@@ -324,5 +325,15 @@ public class Pawn implements Piece{
 			return false;
 		}
 		
+	}
+	
+	@Override
+	public void setId(String i) {
+		pieceID = i;
+	}
+
+	@Override
+	public String getId() {
+		return pieceID;
 	}
 }

@@ -8,6 +8,7 @@ import gui.entities.types.Pattern;
 import javafx.scene.layout.HBox;
 
 public interface Piece {
+	
 	public List<Cell> getAllMoves(Cell current, boolean includeImpossible);
 	
 	public List<Cell> getAllCaptures(Cell current, boolean includeImpossible);
@@ -15,6 +16,10 @@ public interface Piece {
 	public PieceType getType();
 	
 	public PieceColor getColor();
+	
+	public void setId(String id);
+	
+	public String getId();
 	
 	public HBox getUI();
 	

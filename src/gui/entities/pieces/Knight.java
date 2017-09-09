@@ -16,13 +16,14 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 public class Knight implements Piece{
-
+	public String pieceID = "0";
 	private HBox ui;
 	private PieceColor color;
 	private List<Pattern> patterns = new ArrayList<>();
 	
-	public Knight(PieceColor color) {
+	public Knight(PieceColor color, String id) {
 		this.color = color;
+		setId(id);
 		init();
 	}
 	
@@ -311,5 +312,15 @@ public class Knight implements Piece{
 			return false;
 		}
 		
+	}
+
+	@Override
+	public void setId(String i) {
+		pieceID = i;
+	}
+
+	@Override
+	public String getId() {
+		return pieceID;
 	}
 }
