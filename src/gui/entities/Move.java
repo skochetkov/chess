@@ -10,6 +10,9 @@ public class Move {
 	private Piece piece;
 	private PieceColor color;
 	private Condition condition;
+	private Move followingMove;
+	//default weight
+	private int weight = 0;
 	
 	public Move(Condition condition) {
 		this.setCondition(condition);
@@ -38,6 +41,14 @@ public class Move {
 	public void setDistination(Cell distination) {
 		this.distination = distination;
 	}
+	
+	public Move getFollowingMove() {
+		return followingMove;
+	}
+
+	public void setFollowingMove(Move followingMove) {
+		this.followingMove = followingMove;
+	}
 
 	public Piece getPiece() {
 		return piece;
@@ -63,5 +74,11 @@ public class Move {
 		this.condition = condition;
 	}
 	
+	public int getWeight() {
+		return weight;
+	}
 	
+	public void setWeight(int weight) {
+		this.weight = weight;
+	}
 }

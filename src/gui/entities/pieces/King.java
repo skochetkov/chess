@@ -33,9 +33,9 @@ public class King implements Piece{
 		Image image;
 		
 		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/white_king.png");
+			image = new Image("resources/images/white_king.png");
 		else
-			image = new Image("resources/black_king.png");
+			image = new Image("resources/images/black_king.png");
 		ImageView imageView = new ImageView();
 		imageView.setImage(image);
 		ui.getChildren().add(imageView);
@@ -74,6 +74,15 @@ public class King implements Piece{
 		Pattern p8 = new Pattern(Condition.MOVE, false);
 		p8.addMove(MoveType.RIGHT);
 		patterns.add(p8);
+		
+		//after a lot of experiments I came to conclusion that castling is a special case that must be handled on logic side
+		/*Pattern p9 = new Pattern(Condition.MOVE, false);
+		p9.addMove(MoveType.CASTLING_ON_LEFT);
+		patterns.add(p9);
+		
+		Pattern p10 = new Pattern(Condition.MOVE, false);
+		p10.addMove(MoveType.CASTLING_ON_RIGHT);
+		patterns.add(p10);*/
 	}
 	
 	@Override
@@ -138,6 +147,12 @@ public class King implements Piece{
 					case RIGHT:
 						temp.moveLeft(1);
 						break;
+					case CASTLING_ON_LEFT:
+						temp.moveRight(2);
+						break;
+					case CASTLING_ON_RIGHT:
+						temp.moveLeft(2);
+						break;
 					default:
 					}
 				}
@@ -166,6 +181,12 @@ public class King implements Piece{
 						break;
 					case RIGHT:
 						temp.moveRight(1);
+						break;
+					case CASTLING_ON_LEFT:
+						temp.moveLeft(2);
+						break;
+					case CASTLING_ON_RIGHT:
+						temp.moveRight(2);
 						break;
 					default:
 					}

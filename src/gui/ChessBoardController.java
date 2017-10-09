@@ -14,6 +14,7 @@ import gui.entities.pieces.Knight;
 import gui.entities.pieces.Pawn;
 import gui.entities.pieces.Queen;
 import gui.entities.pieces.Rook;
+import gui.entities.types.Condition;
 import gui.entities.types.PieceColor;
 import gui.entities.types.Requests;
 import javafx.geometry.Insets;
@@ -29,6 +30,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import model.ChessGameManager;
+import tests.TestCases;
 
 public class ChessBoardController {
 	private ChessGameManager game;
@@ -39,10 +41,12 @@ public class ChessBoardController {
 	private VBox controlPanel = new VBox();
 	private VBox digits;
 	private HBox letters;
+	private Stage primaryStage;
 	
 	public ChessBoardController(Stage primaryStage, ChessGameManager game) {
 		this.game = game;
 		board = new GridPane();
+		this.primaryStage = primaryStage;
 		initBoard();
 		
 		initDigits();
@@ -59,19 +63,43 @@ public class ChessBoardController {
 		
 		controlPanel.getChildren().add(border);
 		
-		//initPieces();
-		initTest();
+		initPieces();
+		//initTests();
 		
-        primaryStage.setScene(new Scene(controlPanel));
-        
-        
-        
+        this.primaryStage.setScene(new Scene(controlPanel));
+    
 	}
 	
-	
+	private void initTests() {
+		
+		TestCases testCase  = TestCases.DEFAULT;
+		
+		//Select test case
+		//testCase = TestCases.CASTLING_BLACK;
+		testCase = TestCases.CASTLING_WHITE;
+		//testCase = TestCases.PAWN_ADVANCES;
+		//testCase = TestCases.PAWN_ADVANCES_BLACK;
+		
+		if(testCase == TestCases.CASTLING_BLACK) {
+			initTestCastlingBlack();
+		}
+		else if(testCase == TestCases.CASTLING_WHITE) {
+			initTestCastlingWhite();
+		}
+		else if(testCase == TestCases.PAWN_ADVANCES) {
+			initTestPawnAdnvances();
+		}
+		else if(testCase == TestCases.PAWN_ADVANCES_BLACK) {
+			initTestPawnAdnvancesBlack();
+		}
+	} 
 
 	public Pane getBoard() {
 		return board;
+	}
+	
+	public Stage getPrimaryStage() {
+		return primaryStage;
 	}
 	
 	private void initDigits() {
@@ -223,12 +251,13 @@ public class ChessBoardController {
 	/**
 	 * Just function for testing various scenarios
 	 */
-	private void initTest() {
+	private void initTestCastlingBlack() {
 		//Init white pieces
 		
-		cells[0][4].setPiece(new King(PieceColor.BLACK, "1"));
+		cells[0][4].setPiece(new King(PieceColor.BLACK, "21"));
 		//cells[1][4].setPiece(new Knight(PieceColor.BLACK));
-		cells[2][4].setPiece(new Bishop(PieceColor.BLACK, "2"));
+		cells[0][7].setPiece(new Rook(PieceColor.BLACK, "22"));
+		cells[0][0].setPiece(new Rook(PieceColor.BLACK, "23"));
 		
 		cells[7][0].setPiece(new Rook(PieceColor.WHITE, "3"));
 		cells[7][1].setPiece(new Knight(PieceColor.WHITE, "4"));
@@ -238,6 +267,44 @@ public class ChessBoardController {
 		cells[7][5].setPiece(new Bishop(PieceColor.WHITE, "8"));
 		cells[7][6].setPiece(new Knight(PieceColor.WHITE, "9"));
 		cells[7][7].setPiece(new Rook(PieceColor.WHITE, "10"));
+	}
+	
+	private void initTestCastlingWhite() {
+		//Init white pieces
+		
+		cells[0][3].setPiece(new King(PieceColor.BLACK, "21"));
+		//cells[0][4].setPiece(new Rook(PieceColor.BLACK, "22"));
+		cells[0][2].setPiece(new Rook(PieceColor.BLACK, "23"));
+		
+		cells[7][0].setPiece(new Rook(PieceColor.WHITE, "3"));
+		cells[7][4].setPiece(new King(PieceColor.WHITE, "7"));
+		cells[7][7].setPiece(new Rook(PieceColor.WHITE, "10"));
+	}
+	
+	private void initTestPawnAdnvances() {
+		//Init white pieces
+		
+		cells[0][4].setPiece(new King(PieceColor.BLACK, "21"));
+		
+		cells[7][0].setPiece(new Rook(PieceColor.WHITE, "3"));
+		cells[2][0].setPiece(new Pawn(PieceColor.WHITE, "4"));
+		cells[7][4].setPiece(new King(PieceColor.WHITE, "7"));
+		cells[7][7].setPiece(new Rook(PieceColor.WHITE, "10"));
+		cells[2][6].setPiece(new Pawn(PieceColor.WHITE, "11"));
+		cells[2][7].setPiece(new Pawn(PieceColor.WHITE, "14"));
+	}
+	
+	private void initTestPawnAdnvancesBlack() {
+		//Init white pieces
+		
+		cells[7][4].setPiece(new King(PieceColor.WHITE, "21"));
+		
+		//cells[0][0].setPiece(new Rook(PieceColor.BLACK, "3"));
+		cells[6][0].setPiece(new Pawn(PieceColor.BLACK, "4"));
+		cells[0][4].setPiece(new King(PieceColor.BLACK, "7"));
+		//cells[0][7].setPiece(new Rook(PieceColor.BLACK, "10"));
+		cells[6][6].setPiece(new Pawn(PieceColor.BLACK, "11"));
+		cells[6][7].setPiece(new Pawn(PieceColor.BLACK, "14"));
 	}
 
 	public void askChessGame(Requests req, Parameter param) {
@@ -265,6 +332,19 @@ public class ChessBoardController {
 	
 	public Cell[][] getBoardCells() {
 		return cells;
+	}
+
+	public void replacePiece(Cell promotedPiece, Cell piece, Cell oldPiece) {
+		Cell newCell = getRealCell(promotedPiece);
+		newCell.setPiece(piece.getPiece());
+		//cells[oldPiece.getRow()][oldPiece.getCol()].resetPiece();
+		//cells[oldPiece.getRow()][oldPiece.getCol()].setSelected(false);
+		game.doMove(new Move(newCell.getPiece(), newCell, oldPiece, Condition.MOVE));
+		
+	}
+
+	public void setPieceToRealCell(Cell original, Piece piece) {
+		cells[original.getRow()][original.getCol()].setPiece(piece);
 	}
 
 

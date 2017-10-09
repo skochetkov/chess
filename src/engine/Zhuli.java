@@ -8,12 +8,18 @@ import api.ChessGameConnect;
 import gui.entities.Cell;
 import gui.entities.Move;
 import gui.entities.Piece;
+import gui.entities.pieces.Bishop;
+import gui.entities.pieces.Knight;
+import gui.entities.pieces.Queen;
+import gui.entities.pieces.Rook;
 import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
+import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import util.UIUtil;
 
 public class Zhuli {
 	private ChessGameConnect api;
@@ -45,13 +51,13 @@ public class Zhuli {
 		
 		//imitation of thinking
 		//TODO - do not forget to remove it when it really slows down
-		for(int i = 0; i < 100000; i++) {
+		/*for(int i = 0; i < 100000; i++) {
 			for(int j = 0; j < 10000; j++) {
 				for(int k = 0; k < 1000; k++) {
 					;
 				}
 			}
-		}
+		}*/
 		
 		//first, Zhuli checks if she is in danger
 		if(api.checkIfItIsCheck(GameStatus.BLACK_MOVE)) {
@@ -83,8 +89,10 @@ public class Zhuli {
 		List<Cell> pieces = api.getPiecesByColor(color);
 		
 		Move move = getGoodMove(pieces);
+		Condition condition = move.getCondition() ;
+		
 		//Now we have (may be) a list of good moves, let's select one
-		if(move.getCondition() != Condition.UNKNOWN) {
+		if(condition != Condition.UNKNOWN) {
 			//replace dummy cell with a real one
 			move.setDistination(api.getRealCell(move.getDistination()));
 			if(move.getCondition() == Condition.MATE) {
@@ -96,7 +104,14 @@ public class Zhuli {
 				alert.show();
 				return;
 			}
-			api.doMove(move);
+			
+			if(condition == Condition.CASTLING_ON_LEFT || condition == Condition.CASTLING_ON_RIGHT) {
+				api.doMove(move);
+				api.doMove(move.getFollowingMove());
+			}
+			else {
+				api.doMove(move);
+			}
 			//return;
 		}
 		//this is probably mate
@@ -133,7 +148,7 @@ public class Zhuli {
 		List<Move> goodMoves = new ArrayList<>();
 		Cell opponentKing = api.getPiecesByTypeAndColor(PieceType.KING, opponentColor).get(0);
 		Cell myKing = api.getPiecesByTypeAndColor(PieceType.KING, color).get(0);
-		List<Move> possibleMoves = null;
+		List<Move> possibleMoves = new ArrayList<>();
 		
 		//first dummiest version of AI
 		//find first good move
@@ -141,6 +156,36 @@ public class Zhuli {
 			//if no moves or no attack, then we ignore those
 			if(piece.equals(myKing)) {
 				possibleMoves = api.getAllPossibleSafeMoves(piece);
+				Cell newLocation = new Cell(piece.getCol() - 2, piece.getRow());
+				MoveType castlingType = api.isCastlingAllowed(piece, newLocation);
+				if(castlingType == MoveType.CASTLING_ON_RIGHT) {
+					Move castlingOnRight = new Move(piece.getPiece(), piece, newLocation, Condition.CASTLING_ON_RIGHT);
+					
+					Cell rook = new Cell(0, myKing.getRow());
+					Cell realRook = api.getRealCell(rook);
+					
+					
+					if(realRook != null && realRook.getPiece() != null) {
+						rook.moveRight(3);
+						castlingOnRight.setFollowingMove(new Move(realRook.getPiece(), realRook, rook, Condition.MOVE));
+						possibleMoves.add(castlingOnRight);
+					}
+				}
+				
+				newLocation = new Cell(piece.getCol() + 2, piece.getRow());
+				castlingType = api.isCastlingAllowed(piece, newLocation);
+				if(castlingType == MoveType.CASTLING_ON_LEFT) {
+					Move castlingOnLeft = new Move(piece.getPiece(), piece, newLocation, Condition.CASTLING_ON_LEFT);
+					Cell rook = new Cell(7, myKing.getRow());
+					Cell realRook = api.getRealCell(rook);
+					
+					
+					if(realRook != null && realRook.getPiece() != null) {
+						rook.moveLeft(2);
+						castlingOnLeft.setFollowingMove(new Move(realRook.getPiece(), realRook, rook, Condition.MOVE));
+						possibleMoves.add(castlingOnLeft);
+					}
+				}
 			}
 			else {
 				possibleMoves = api.getAllPossibleMoves(piece);
@@ -154,8 +199,17 @@ public class Zhuli {
 			
 			//THIS IS BIG TODO
 			for (Move m : possibleMoves) {
-				
-				if(!piece.equals(myKing) && isMoveVeryBad(m, myKing)) continue;
+				Condition cond = m.getCondition();
+				//check if the move is not very bad
+				if(!piece.equals(myKing) && isMoveVeryBad(m, myKing)) {
+					continue;
+				}
+				//check if castling puts the king under attack
+				else if(cond == Condition.CASTLING_ON_LEFT || cond == Condition.CASTLING_ON_RIGHT) {
+					if(isMoveVeryBad(m)) {
+						continue;
+					}
+				}
 				
 				if(m.getCondition() == Condition.ATTACK) {
 					//if by chance you can eat... well... the king... you can do it
@@ -175,15 +229,82 @@ public class Zhuli {
 		if(goodMoves.size() == 0)
 			return new Move(Condition.UNKNOWN);
 		
-		System.out.println("Good moves:");
+		///////////////////////////////// PLUG IN BRAIN ///////////////////////////////////////////////////
 		
+		
+		Move move = brain1(goodMoves);
+		
+		///////////////////////////////// BRAIN IS PLUGGED IN ////////////////////////////////
+		
+		//TODO Handle Promotion here
+		if(move.getPiece().getType() == PieceType.PAWN && move.getCondition() == Condition.POSSIBLE_PROMOTION) {
+			
+				//return promotionType;
+				Piece[] options = new Piece[4];
+				Piece piece = move.getPiece();
+				options[0] = new Rook(color, "10"+piece.getId());
+				options[1] = new Knight(color, "10"+piece.getId());
+				options[2] = new Bishop(color, "10"+piece.getId());
+				options[3] = new Queen(color, "10"+piece.getId());
+				
+				int selection = rand.nextInt(options.length); 
+				move.setPiece(options[selection]);
+				api.setPieceToRealCell(move.getOriginal(), move.getPiece());
+				
+		}
+		
+		return move;
+	}
+	
+	/**
+	 * CAUTION! WORK WITH BRAIN! 
+	 * This is the first non random brain where we assign some kind of weight to moves
+	 * @param goodMoves
+	 * @return
+	 */
+	private Move brain1(List<Move> goodMoves) {
+		// The first dumbest idea - random move
+		//int value = rand.nextInt(goodMoves.size()); 
+		//Move move = goodMoves.get(value);
+		
+		//TODO just for experiment we assign some kind of weight to moves
+		//do some preparation before weighting
+		System.out.println("GOOD MOVES:");
+						
 		for(Move m: goodMoves) {
 			System.out.println(m.getPiece().getType() + " " + m.getOriginal().getNotation() + ":" + m.getDistination().getNotation());
-		}
+			if(m.getPiece().getType() == PieceType.PAWN) {
+				MoveType promotionType = isPossiblyPromoted(m.getOriginal(), m.getDistination());
 				
-		int value = rand.nextInt(goodMoves.size()); 
-		Move move = goodMoves.get(value);
-		
+				if(promotionType == MoveType.POSSIBLE_PROMOTION) {
+					m.setCondition(Condition.POSSIBLE_PROMOTION);
+				}
+			}
+		}
+						
+		// Assign weight
+		for(Move m: goodMoves) {
+			Condition cond = m.getCondition();
+							
+			if(cond == Condition.POSSIBLE_PROMOTION)
+				m.setWeight(8);
+			else if(cond == Condition.CASTLING_ON_LEFT || cond == Condition.CASTLING_ON_RIGHT)
+				m.setWeight(6);
+			else if(cond == Condition.ATTACK)
+				m.setWeight(5);
+			else if(cond == Condition.MOVE)
+				m.setWeight(4);
+			else
+				m.setWeight(1);
+		}
+						
+		Move move = goodMoves.get(0);
+		// Take the one with highest weight
+		for(Move m: goodMoves) {
+			if(m.getWeight() > move.getWeight()) {
+				move = m;
+			}
+		}
 		return move;
 	}
 
@@ -195,6 +316,22 @@ public class Zhuli {
 	 */
 	private boolean isMoveVeryBad(Move move, Cell weakPiece) {
 		return api.isMoveVeryBad(move, weakPiece);
+	}
+	
+	private boolean isMoveVeryBad(Move move) {
+		return api.isMoveVeryBad(move);
+	}
+	
+	public MoveType isPossiblyPromoted(Cell selected, Cell newLocation) {
+		MoveType type = MoveType.ILLIGAL;
+		
+		if(selected.getPiece().getType() == PieceType.PAWN) {
+			if(newLocation.getRow() == 0 || newLocation.getRow() == 7) {
+				//UIUtil.showPromotionBox(null, selected, newLocation) ;
+				type = MoveType.POSSIBLE_PROMOTION;
+			}
+		}
+		return type;
 	}
 
 	//TODO improve, it is very dummy solution right now

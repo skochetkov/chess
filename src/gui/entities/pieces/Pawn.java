@@ -35,9 +35,9 @@ public class Pawn implements Piece{
 		Image image;
 		
 		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/white_pawn.png");
+			image = new Image("resources/images/white_pawn.png");
 		else
-			image = new Image("resources/black_pawn.png");
+			image = new Image("resources/images/black_pawn.png");
 		ImageView imageView = new ImageView();
 		imageView.setImage(image);
 		ui.getChildren().add(imageView);

@@ -83,7 +83,15 @@ public class ChessGameConnect {
 		return manager.isMoveVeryBad(move, weakPiece);
 	}
 	
+	public boolean isMoveVeryBad(Move move) {
+		return manager.isMoveVeryBad(move);
+	}
+	
 	public MoveType isCastlingAllowed(Cell selected, Cell newLocation) {
 		return manager.isCastlingAllowed(selected, newLocation);
+	}
+
+	public void setPieceToRealCell(Cell original, Piece piece) {
+		manager.setPieceToRealCell(original, piece);
 	}
 }

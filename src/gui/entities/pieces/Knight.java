@@ -33,9 +33,9 @@ public class Knight implements Piece{
 		Image image;
 		
 		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/white_knight.png");
+			image = new Image("resources/images/white_knight.png");
 		else
-			image = new Image("resources/black_knight.png");
+			image = new Image("resources/images/black_knight.png");
 		ImageView imageView = new ImageView();
 		imageView.setImage(image);
 		ui.getChildren().add(imageView);

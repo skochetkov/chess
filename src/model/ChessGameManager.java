@@ -16,9 +16,14 @@ import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
 import gui.entities.types.MoveType;
 import gui.entities.types.Requests;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import util.UIUtil;
 
 public class ChessGameManager {
 	private ChessBoardController board;
@@ -159,6 +164,9 @@ public class ChessGameManager {
 						doMove(new Move(rook.getPiece(), rook, newPlace, Condition.MOVE));
 						break;
 					}
+					case PROMOTION: {
+							return;
+						}
 					default:
 						break;
 				}
@@ -541,6 +549,13 @@ public class ChessGameManager {
 		
 		List<Cell> moves = piece.getAllMoves(selected, false);
 		
+		if(selected.getPiece().getType() == PieceType.PAWN) {
+			MoveType promotionType = isPromoted(selected, newLocation);
+			if(promotionType == MoveType.PROMOTION) {
+				return promotionType;
+			}
+		}
+		
 		for(Cell move : moves) {
 			//if new location is in the list of legal moves and it is not occupied by other pieces
 			if(move.equals(newLocation) && newLocation.isEmpty()) {
@@ -559,13 +574,27 @@ public class ChessGameManager {
 		// there are a few exceptions here (it is better to handle them here instead of delegating to piece's logic)
 		//Get the king
 		//1. Castling
-		MoveType castlingType = isCastlingAllowed(selected, newLocation);
-		if(castlingType == MoveType.CASTLING_ON_LEFT || castlingType == MoveType.CASTLING_ON_RIGHT) {
-			return castlingType;
+		if(selected.getPiece().getType() == PieceType.KING) {
+			MoveType castlingType = isCastlingAllowed(selected, newLocation);
+			if(castlingType == MoveType.CASTLING_ON_LEFT || castlingType == MoveType.CASTLING_ON_RIGHT) {
+				return castlingType;
+			}
 		}
 		return MoveType.ILLIGAL;
 	}
 	
+	public MoveType isPromoted(Cell selected, Cell newLocation) {
+		MoveType type = MoveType.ILLIGAL;
+		
+		if(selected.getPiece().getType() == PieceType.PAWN) {
+			if(newLocation.getRow() == 0 || newLocation.getRow() == 7) {
+				UIUtil.showPromotionBox(board, selected, newLocation) ;
+				type = MoveType.PROMOTION;
+			}
+		}
+		return type;
+	}
+
 	public MoveType isCastlingAllowed(Cell selected, Cell newLocation) {
 		MoveType type = MoveType.ILLIGAL;
 		
@@ -581,25 +610,63 @@ public class ChessGameManager {
 				//if castling is on the left side, check if there is a rook is there
 				if(newLocation.getCol() == (selected.getCol() - 2)) {
 					rook = new Cell(0, selected.getRow());
+					
+					if(getRealCell(rook).getPiece() == null || getRealCell(rook).getPiece().getType() != PieceType.ROOK)
+						return MoveType.ILLIGAL;
+					
 					Cell one = new Cell(1, selected.getRow());
 					Cell three = new Cell(3, selected.getRow());
 					if(getRealCell(one).isEmpty() && getRealCell(three).isEmpty()) {
 						othersEmpty = true;
-						type = MoveType.CASTLING_ON_LEFT;
+						//if it is on the top
+						if(selected.getRow() == 0)
+							type = MoveType.CASTLING_ON_RIGHT;
+						else
+							type = MoveType.CASTLING_ON_LEFT;
 					}
 					
 				}
 				else {
 					rook = new Cell(7, selected.getRow());
+					
+					if(getRealCell(rook).getPiece() == null || getRealCell(rook).getPiece().getType() != PieceType.ROOK)
+						return MoveType.ILLIGAL;
 					Cell six = new Cell(6, selected.getRow());
 					if(getRealCell(six).isEmpty()) {
 						othersEmpty = true;
-						type = MoveType.CASTLING_ON_RIGHT;
+						//if it is on the top
+						if(selected.getRow() == 0)
+							type = MoveType.CASTLING_ON_LEFT;
+						else
+							type = MoveType.CASTLING_ON_RIGHT;
 					}
 				}
 				
-				if(getRealCell(rook).getPiece().getType() == PieceType.ROOK && getRealCell(rook).getPiece().getColor() == selected.getPiece().getColor()) {
+				if(getRealCell(rook).getPiece() != null && getRealCell(rook).getPiece().getType() == PieceType.ROOK && getRealCell(rook).getPiece().getColor() == selected.getPiece().getColor()) {
 					
+					//Last check if King is not under attack when it moves
+					//Top right corner
+					Cell start = new Cell(selected.getCol(), selected.getRow());
+					Cell next = new Cell(selected.getCol(), selected.getRow());
+					Cell last = new Cell(selected.getCol(), selected.getRow());
+					
+					if((type == MoveType.CASTLING_ON_LEFT && selected.getRow() == 0) || (type == MoveType.CASTLING_ON_RIGHT && selected.getRow() == 7)) {
+						next = new Cell(selected.getCol() + 1, selected.getRow());
+						last = new Cell(selected.getCol() + 2, selected.getRow());
+					}
+					else if((type == MoveType.CASTLING_ON_RIGHT && selected.getRow() == 0) || (type == MoveType.CASTLING_ON_LEFT && selected.getRow() == 7)) {
+						next = new Cell(selected.getCol() - 1, selected.getRow());
+						last = new Cell(selected.getCol() - 2, selected.getRow());
+					}
+					
+					Move startMove = new Move(selected.getPiece(), selected, selected, Condition.MOVE );
+					Move nextMove = new Move(selected.getPiece(), selected, next, Condition.MOVE );
+					Move lastMove = new Move(selected.getPiece(), selected, last, Condition.MOVE );
+					
+					if(isMoveVeryBad(startMove) || isMoveVeryBad(nextMove) || isMoveVeryBad(lastMove))
+						return MoveType.ILLIGAL; 
+					
+						
 					//And there are all empty spaces between the king and the rook
 					if(othersEmpty)
 						return type;
@@ -815,6 +882,34 @@ public class ChessGameManager {
 		}
 		
 		return false;
+	}
+	
+	public boolean isMoveVeryBad(Move move) {
+		PieceColor opponentColor = null;
+		Cell weakPiece = move.getDistination();
+		
+		if(move.getPiece().getColor() == PieceColor.BLACK) 
+			opponentColor = PieceColor.WHITE;
+		else
+			opponentColor = PieceColor.BLACK;
+		List<Cell> potentialAttackers = getPiecesByColor(opponentColor); 
+		
+		for(Cell attacker: potentialAttackers) {
+			List<Cell> captureMoves = attacker.getPiece().getAllPotentialCaptures(attacker);
+			for(Cell attackerMove : captureMoves) {
+				if(attackerMove.equals(weakPiece)) {
+					if(attacker.getPiece().isItEatable(attacker, weakPiece, move.getOriginal())) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	public void setPieceToRealCell(Cell original, Piece piece) {
+		board.setPieceToRealCell(original, piece);
 	}
 
 }

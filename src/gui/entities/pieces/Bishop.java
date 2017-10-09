@@ -33,9 +33,9 @@ public class Bishop implements Piece{
 		Image image;
 		
 		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/white_bishop.png");
+			image = new Image("resources/images/white_bishop.png");
 		else
-			image = new Image("resources/black_bishop.png");
+			image = new Image("resources/images/black_bishop.png");
 		ImageView imageView = new ImageView();
 		imageView.setImage(image);
 		ui.getChildren().add(imageView);

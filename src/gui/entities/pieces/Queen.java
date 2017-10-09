@@ -33,9 +33,9 @@ public class Queen implements Piece{
 		Image image;
 		
 		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/white_queen.png");
+			image = new Image("resources/images/white_queen.png");
 		else
-			image = new Image("resources/black_queen.png");
+			image = new Image("resources/images/black_queen.png");
 		ImageView imageView = new ImageView();
 		imageView.setImage(image);
 		ui.getChildren().add(imageView);

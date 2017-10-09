@@ -14,6 +14,7 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 public class Cell implements Parameter{
 	private boolean isBlack;
@@ -47,6 +48,13 @@ public class Cell implements Parameter{
 		this.row = row;
 		//set dummy figure color
 		setDummyPiece(new Dummy(color));
+		cell = new HBox();
+		if(isBlack)
+			cell.setStyle("-fx-background-color: #7A645F;");
+		else
+			cell.setStyle("-fx-background-color: #F9F4EB;");
+		
+		cell.setPrefSize(50, 50);
 	}
 	
 	public Cell(int col, int row) {
@@ -96,6 +104,17 @@ public class Cell implements Parameter{
 		    			setSelected(true);
 		    			board.askChessGame(Requests.I_WAS_SELECTED_BY_USER, Cell.this);
 		    		}*/
+		    }
+		});
+	}
+	
+	public void initPromotionEvent(Stage dialog, ChessBoardController controlBoard, Cell newLocation, Cell oldPiece) {
+		cell.setOnMouseClicked(new EventHandler<MouseEvent>() {
+		    @Override public void handle(MouseEvent e) {
+		    		dialog.hide();
+		    		controlBoard.replacePiece(newLocation, Cell.this, oldPiece);
+		    		//TODO check if it works correctly
+		    		controlBoard.askChessGame(Requests.I_WAS_PROPOSED_BY_USER, newLocation);
 		    }
 		});
 	}

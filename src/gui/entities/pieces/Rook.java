@@ -33,9 +33,9 @@ public class Rook implements Piece{
 		Image image;
 		
 		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/white_rook.png");
+			image = new Image("resources/images/white_rook.png");
 		else
-			image = new Image("resources/black_rook.png");
+			image = new Image("resources/images/black_rook.png");
 		ImageView imageView = new ImageView();
 		imageView.setImage(image);
 		ui.getChildren().add(imageView);
