@@ -9,11 +9,9 @@ import gui.entities.types.PieceType;
 import gui.entities.types.Pattern;
 import javafx.scene.layout.HBox;
 
-public class Dummy  implements Piece{
-	private PieceColor color;
-	
-	public Dummy(PieceColor color) {
-		this.color = color;
+public class Dummy  extends Piece{
+	public Dummy(PieceColor color, String id) {
+		super(color, id);
 	}
 	
 	@Override
@@ -31,11 +29,6 @@ public class Dummy  implements Piece{
 	@Override
 	public PieceType getType() {
 		return PieceType.DUMMY;
-	}
-
-	@Override
-	public PieceColor getColor() {
-		return color;
 	}
 
 	@Override
@@ -68,15 +61,4 @@ public class Dummy  implements Piece{
 		return false;
 	}
 
-	@Override
-	public void setId(String id) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public String getId() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

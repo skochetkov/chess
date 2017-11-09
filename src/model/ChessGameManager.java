@@ -32,8 +32,8 @@ public class ChessGameManager {
 	private Zhuli zhuli;
 	private GameStatus status = GameStatus.NONE;
 	
-	public ChessGameManager(Stage primaryStage) {
-		board = new ChessBoardController(primaryStage, this);
+	public ChessGameManager() {
+		board = new ChessBoardController(this);
         
 		api = new ChessGameConnect(this);
         //regular scenario playing user with computer
@@ -56,6 +56,10 @@ public class ChessGameManager {
 
 	public boolean isClickLegal() {
 		return true;
+	}
+	
+	public Cell[][] getBoardCells() {
+		return board.getBoardCells();
 	}
 
 	public void whatToDoNext(Requests req, Parameter param) {
@@ -138,13 +142,11 @@ public class ChessGameManager {
 				//take selected cell
 				Cell selected = board.getSelectedCell();
 				param = getRealCell(param);
-				MoveType moveType = isMoveLegal(selected, param);
-				if(moveType == MoveType.ILLIGAL)
-					return;
+				Move move = board.isMoveLegal(selected, param);
 				
-				switch (moveType) {
-					case REGULAR:
-						doMove(new Move(selected.getPiece(), selected, param, Condition.MOVE));
+				switch (move.getCondition()) {
+					case MOVE:
+						doMove(new Move(selected.getPiece(), selected, param, move.getCondition()));
 						break;
 					case CASTLING_ON_LEFT: {
 						doMove(new Move(selected.getPiece(), selected, param, Condition.MOVE));
@@ -164,9 +166,20 @@ public class ChessGameManager {
 						doMove(new Move(rook.getPiece(), rook, newPlace, Condition.MOVE));
 						break;
 					}
-					case PROMOTION: {
+					case EN_PASSANT_LEFT: {
+						doEnPassantMove(move);
+						break;
+					}
+					case EN_PASSANT_RIGHT: {
+						doEnPassantMove(move);
+						break;
+					}
+					case POSSIBLE_PROMOTION: {
 							return;
 						}
+					case UNKNOWN: {
+						return;
+					}
 					default:
 						break;
 				}
@@ -227,51 +240,7 @@ public class ChessGameManager {
 	}
 
 	public List<Move> checkIfItIsMate(GameStatus status) {
-		PieceColor color = null;
-		PieceColor opponentColor = null;
-		
-		if(status == GameStatus.WHITE_MOVE) {
-			color = PieceColor.WHITE;
-			opponentColor = PieceColor.BLACK;
-		}
-		else {
-			color = PieceColor.BLACK;
-			opponentColor = PieceColor.WHITE;
-		}
-		
-		//Get the king
-		Cell king = getPiecesByTypeAndColor(PieceType.KING, color).get(0);
-		System.out.println("check if king can be defended by his pieces");
-		//TODO (exclude piece itself) if king can be defended by his pieces except the king itself
-		List<Move>  defendingMoves = getWhoCanDefendMe(king, color);
-		
-		if(defendingMoves.size() > 0) {
-			System.out.println("I can be saved!");
-		}
-		//get all king's moves and captures
-		List<Cell> safeMoves = getAllSafeMoves(king);
-		List<Cell> safeCaptures = getAllSafeCaptures(king);
-		System.out.println("Checking if the king has safe moves or safe captures....");
-		
-		System.out.println("defendingMoves.size() : "+defendingMoves.size()+" safeMoves.size() : "+safeMoves.size()+" safeCaptures.size() : "+safeCaptures.size());
-		//rear case where there is no way to move
-		if(defendingMoves.size() > 0 || safeMoves.size() > 0 || safeCaptures.size() > 0) {
-			if(safeMoves.size() > 0) {
-				System.out.println("there is safe moves for the king");
-				for(Cell mv : safeMoves) {
-					defendingMoves.add(new Move(king.getPiece(), king, mv, Condition.MOVE));
-				}
-			}
-			
-			if(safeCaptures.size() > 0) {
-				System.out.println("there is safe captures for the king");
-				for(Cell mv : safeCaptures) {
-					defendingMoves.add(new Move(king.getPiece(), king, mv, Condition.ATTACK));
-				}
-			}
-			
-			return defendingMoves;
-		}
+		List<Move>  defendingMoves = board.checkIfItIsMate(status);
 	
 		return defendingMoves;
 	}
@@ -296,213 +265,23 @@ public class ChessGameManager {
 	 * @return
 	 */
 	public List<Move> getWhoCanDefendMe(Cell piece, PieceColor color) {
-		List<Cell> listOfAllWhoAttacksMe = getWhoEndangersMe(piece);
-		List<Cell> listOfAllMyPieces = getPiecesByColor(color);
-		List<Move> listOfMyDefendersMoves = new ArrayList<>();
-		
-		//list of all attackers one by one
-		for(Cell attacker : listOfAllWhoAttacksMe) {
-			for(Cell myPiece : listOfAllMyPieces) {
-				if(myPiece.equals(piece)) continue;
-				//check if one or more my pieces can beat attacker
-				List<Cell> captureMoves = myPiece.getPiece().getAllCaptures(myPiece, false);
-				for(Cell cm : captureMoves) {
-					if(cm.equals(attacker)) {
-						listOfMyDefendersMoves.add(new Move(myPiece.getPiece(), myPiece, cm, Condition.ATTACK));
-					}
-				}
-				
-				//We cannot block if the attacker is pawn, knight or king
-				if(attacker.getPiece().getType() == PieceType.PAWN ||
-						attacker.getPiece().getType() == PieceType.KNIGHT ||
-						attacker.getPiece().getType() == PieceType.KING) {
-					continue;
-				}
-				
-				//king cannot defend itself by blocking
-				if(myPiece.getPiece().getType() == PieceType.KING) continue;
-				//check if one of my piece can defend me by blocking the attacker
-				List<Cell> blockingMoves = myPiece.getPiece().getAllMoves(myPiece, false);
-				List<Cell> path = getPath(piece, attacker);
-				for(Cell cm : blockingMoves) {
-					//Move move = new Move(cm.getPiece(), myPiece, cm, Condition.BLOCK);
-					//if(!canMoveDefendMe(piece, attacker, move)) {
-					//	listOfMyDefendersMoves.add(move);
-					//}
-					for(Cell p : path) {
-						if(p.equals(cm)) {
-							listOfMyDefendersMoves.add(new Move(cm.getPiece(), myPiece, cm, Condition.BLOCK));
-						}
-					}
-				}
-			}
-			
-		}
-
-		return listOfMyDefendersMoves;
-	}
-
-	private boolean canMoveDefendMe(Cell piece, Cell attacker, Move move) {
-		//List<Cell> captureMoves = attacker.getPiece().getAllCaptures(attacker);
-		//take a list of all moves from attacker to victim
-		List<Cell> path = getPath(piece, attacker);
-		
-		for(Cell p : path) {
-			if(p.equals(move.getDistination())) {
-				System.out.println("defending move: " + move.getOriginal() + " " + move.getDistination() + " " + move.getPiece());
-				return true;
-			}
-				
-		}
-		return false;
-	}
-
-	/**
-	 * Gets path between two pieces
-	 * @param piece
-	 * @param attacker
-	 * @return
-	 */
-	private List<Cell> getPath(Cell piece, Cell attacker) {
-		List<Cell> path = new ArrayList<>();
-		int horizontal = 0;
-		int vertical = 0;
-		int x = 0, y = 0;
-		int col = attacker.getCol(), row = attacker.getRow();
-		horizontal = attacker.getCol() - piece.getCol();
-		vertical = attacker.getRow() - piece.getRow();
-		
-		if(horizontal < 0)
-			x = 1; //move right ++
-		else if(horizontal > 0)
-			x = -1; //move left --
-		
-		if(vertical < 0)
-			y = 1; //move down ++
-		else if(vertical > 0)
-			y = -1; //move up --
-		
-		while ((col >= 0 && col <= 7 && row >=0 && row <= 7) && 
-				!(col == piece.getCol() && row == piece.getRow()) ){
-			//attacker.move(x, y);
-			col += x; 
-			row += y;
-			path.add(new Cell(col, row));
-		}
-		
-		return path;
-	}
-
-	/**
-	 * Checks if a given cell is under opponent's attack (by one of opponent's pieces)
-	 * @param move
-	 * @param opponentColor
-	 * @return
-	 */
-	private boolean checkIfCellIsSafe(Cell move, PieceColor opponentColor) {
-		List<Cell> allPieces = getPiecesByColor(opponentColor);
-		
-		for(Cell p : allPieces) {
-			List<Cell> captureMoves = p.getPiece().getAllPotentialCaptures(p);//TODO - needs to bring all potential captures, not only real ones
-			if(captureMoves.size() == 0)
-				continue;
-			
-			for(Cell c : captureMoves) {
-				if(c.getCol() == move.getCol() && c.getRow() == move.getRow()) {
-					return false;
-				}
-			}
-		}
-		return true;
+		return board.getWhoCanDefendMe(piece, color);
 	}
 
 	public boolean checkIfItIsCheck(GameStatus status) {
-		boolean isCheck = false;
-		PieceColor color = null;
-		PieceColor opponentColor = null;
-		
-		if(status == GameStatus.WHITE_MOVE) {
-			color = PieceColor.WHITE;
-			opponentColor = PieceColor.BLACK;
-		}
-		else {
-			color = PieceColor.BLACK;
-			opponentColor = PieceColor.WHITE;
-		}
-		
-		List<Cell> allPieces = getPiecesByColor(opponentColor);
-		
-		for(Cell p : allPieces) {
-			List<Cell> captureMoves = p.getPiece().getAllCaptures(p, false);
-			if(captureMoves.size() == 0)
-				continue;
-			
-			for(Cell c : captureMoves) {
-				if(getRealCell(c).getPiece().getType() == PieceType.KING)  {
-					isCheck = true;
-					break;
-				}
-			}
-			if(isCheck) break;
-		}
-		
-		return isCheck;
+		return board.checkIfItIsCheck(status);
 	}
 	
-	public List<Cell> getPiecesByTypeAndColor(PieceType type, PieceColor color) {
-		List<Cell> pieces = new ArrayList<>();
-		
-		List<Cell> allPieces = getPiecesByColor(color);
-		
-		for(Cell p : allPieces) {
-			if(p.getPiece().getType() == type) {
-				pieces.add(p);
-			}
-		}
-		
-		return pieces;
-	}
-	
-	public List<Cell> getAttackingPiecesByColor(Cell newPieceLocation, Cell oldPieceLocation, PieceColor color) {
-		List<Cell> pieces = new ArrayList<>();
-		
-		List<Cell> allPieces = getPiecesByColor(color);
-		
-		for(Cell p : allPieces) {
-			
-			if(p.getPiece().isItEatable(p, newPieceLocation, oldPieceLocation)) {
-				pieces.add(p);
-			}
-		}
-		
-		return pieces;
+	public List<Cell> getPiecesByTypeAndColor(PieceType piece, PieceColor color) {
+		return board.getPiecesByTypeAndColor(piece, color);
 	}
 	
 	public List<Cell> getWhoEndangersMe(Cell me) {
-		List<Cell> pieces = new ArrayList<>();
-		PieceColor color;
-		
-		if(me.getPiece().getColor() == PieceColor.BLACK) 
-			color = PieceColor.WHITE;
-		else
-			color = PieceColor.BLACK;
-		
-		List<Cell> opponentsPieces = getPiecesByColor(color);
-		
-		for(Cell p : opponentsPieces) {
-			List<Cell> captureMoves = p.getPiece().getAllCaptures(p, false);
-			if(captureMoves.size() == 0)
-				continue;
-			
-			for(Cell cm : captureMoves) {
-				if(cm.equals(me)) {
-					pieces.add(p);
-					break;
-				}
-			}
-		}
-		
-		return pieces;
+		return board.getWhoEndangersMe(me);
+	}
+	
+	public List<Cell> getPiecesByColor(PieceColor color) {
+		return board.getPiecesByColor(color);
 	}
 	
 	/**
@@ -511,25 +290,7 @@ public class ChessGameManager {
 	 * @return
 	 */
 	public List<Cell> getWhoCanDefendMe(Cell me) {
-		List<Cell> listOfAllWhoAttacksMe = getWhoEndangersMe(me);
-		List<Cell> listOfAllMyPieces = getPiecesByColor(me.getPiece().getColor());
-		List<Cell> listOfWhoCanDefendMe = new ArrayList<>();
-		
-		//check if one of my pieces can defend me
-		for(Cell myPiece : listOfAllMyPieces) {
-			List<Cell> captureMoves = myPiece.getPiece().getAllCaptures(myPiece, false);
-			if(captureMoves.size() == 0)
-				continue;
-			
-			for(Cell cm : captureMoves) {
-				for(Cell attacker : listOfAllWhoAttacksMe) {
-					if(cm.equals(attacker)) {
-						listOfWhoCanDefendMe.add(myPiece);
-					}
-				}
-			}
-		}
-		return listOfWhoCanDefendMe;
+		return board.getWhoCanDefendMe(me);
 	}
 
 	private boolean isCurrentPlayerHasSelectedCell() {
@@ -542,139 +303,12 @@ public class ChessGameManager {
 		return false;
 	}
 
-	private MoveType isMoveLegal(Cell selected, Cell newLocation) {
-		
-		//take its figure
-		Piece piece = selected.getPiece();
-		
-		List<Cell> moves = piece.getAllMoves(selected, false);
-		
-		if(selected.getPiece().getType() == PieceType.PAWN) {
-			MoveType promotionType = isPromoted(selected, newLocation);
-			if(promotionType == MoveType.PROMOTION) {
-				return promotionType;
-			}
-		}
-		
-		for(Cell move : moves) {
-			//if new location is in the list of legal moves and it is not occupied by other pieces
-			if(move.equals(newLocation) && newLocation.isEmpty()) {
-				return MoveType.REGULAR;
-			}
-		}
-		
-		List<Cell> captureMoves = piece.getAllCaptures(selected, false);
-		
-		for(Cell move : captureMoves) {
-			//if new location is in the list of legal moves and it is not occupied by other pieces
-			if(move.equals(newLocation) && !newLocation.isEmpty() && selected.getPiece().getColor() != newLocation.getPiece().getColor())
-				return MoveType.REGULAR;
-		}
-		
-		// there are a few exceptions here (it is better to handle them here instead of delegating to piece's logic)
-		//Get the king
-		//1. Castling
-		if(selected.getPiece().getType() == PieceType.KING) {
-			MoveType castlingType = isCastlingAllowed(selected, newLocation);
-			if(castlingType == MoveType.CASTLING_ON_LEFT || castlingType == MoveType.CASTLING_ON_RIGHT) {
-				return castlingType;
-			}
-		}
-		return MoveType.ILLIGAL;
-	}
-	
-	public MoveType isPromoted(Cell selected, Cell newLocation) {
-		MoveType type = MoveType.ILLIGAL;
-		
-		if(selected.getPiece().getType() == PieceType.PAWN) {
-			if(newLocation.getRow() == 0 || newLocation.getRow() == 7) {
-				UIUtil.showPromotionBox(board, selected, newLocation) ;
-				type = MoveType.PROMOTION;
-			}
-		}
-		return type;
+	public Move isEnPassantAllowed(Cell selected) {
+		return board.isEnPassantAllowed(selected);
 	}
 
-	public MoveType isCastlingAllowed(Cell selected, Cell newLocation) {
-		MoveType type = MoveType.ILLIGAL;
-		
-		if(selected.getPiece().getType() == PieceType.KING) {
-			List<Move> recordedMoves = board.getRecordedMovesForPieceId(selected.getPiece());
-			//if no recorded moves for king and for rook
-			if(recordedMoves.isEmpty() && newLocation.isEmpty() 
-					&& (newLocation.getRow() == selected.getRow()) && 
-					(newLocation.getCol() == (selected.getCol() - 2) || (newLocation.getCol() == selected.getCol() + 2))) {
-				
-				Cell rook = null;
-				boolean othersEmpty = false;
-				//if castling is on the left side, check if there is a rook is there
-				if(newLocation.getCol() == (selected.getCol() - 2)) {
-					rook = new Cell(0, selected.getRow());
-					
-					if(getRealCell(rook).getPiece() == null || getRealCell(rook).getPiece().getType() != PieceType.ROOK)
-						return MoveType.ILLIGAL;
-					
-					Cell one = new Cell(1, selected.getRow());
-					Cell three = new Cell(3, selected.getRow());
-					if(getRealCell(one).isEmpty() && getRealCell(three).isEmpty()) {
-						othersEmpty = true;
-						//if it is on the top
-						if(selected.getRow() == 0)
-							type = MoveType.CASTLING_ON_RIGHT;
-						else
-							type = MoveType.CASTLING_ON_LEFT;
-					}
-					
-				}
-				else {
-					rook = new Cell(7, selected.getRow());
-					
-					if(getRealCell(rook).getPiece() == null || getRealCell(rook).getPiece().getType() != PieceType.ROOK)
-						return MoveType.ILLIGAL;
-					Cell six = new Cell(6, selected.getRow());
-					if(getRealCell(six).isEmpty()) {
-						othersEmpty = true;
-						//if it is on the top
-						if(selected.getRow() == 0)
-							type = MoveType.CASTLING_ON_LEFT;
-						else
-							type = MoveType.CASTLING_ON_RIGHT;
-					}
-				}
-				
-				if(getRealCell(rook).getPiece() != null && getRealCell(rook).getPiece().getType() == PieceType.ROOK && getRealCell(rook).getPiece().getColor() == selected.getPiece().getColor()) {
-					
-					//Last check if King is not under attack when it moves
-					//Top right corner
-					Cell start = new Cell(selected.getCol(), selected.getRow());
-					Cell next = new Cell(selected.getCol(), selected.getRow());
-					Cell last = new Cell(selected.getCol(), selected.getRow());
-					
-					if((type == MoveType.CASTLING_ON_LEFT && selected.getRow() == 0) || (type == MoveType.CASTLING_ON_RIGHT && selected.getRow() == 7)) {
-						next = new Cell(selected.getCol() + 1, selected.getRow());
-						last = new Cell(selected.getCol() + 2, selected.getRow());
-					}
-					else if((type == MoveType.CASTLING_ON_RIGHT && selected.getRow() == 0) || (type == MoveType.CASTLING_ON_LEFT && selected.getRow() == 7)) {
-						next = new Cell(selected.getCol() - 1, selected.getRow());
-						last = new Cell(selected.getCol() - 2, selected.getRow());
-					}
-					
-					Move startMove = new Move(selected.getPiece(), selected, selected, Condition.MOVE );
-					Move nextMove = new Move(selected.getPiece(), selected, next, Condition.MOVE );
-					Move lastMove = new Move(selected.getPiece(), selected, last, Condition.MOVE );
-					
-					if(isMoveVeryBad(startMove) || isMoveVeryBad(nextMove) || isMoveVeryBad(lastMove))
-						return MoveType.ILLIGAL; 
-					
-						
-					//And there are all empty spaces between the king and the rook
-					if(othersEmpty)
-						return type;
-				}
-			}
-		}
-		
-		return type;
+	public Condition isCastlingAllowed(Cell selected, Cell newLocation) {
+		return board.isCastlingAllowed(selected, newLocation);
 	}
 
 	public void doMove(Move move) {
@@ -700,6 +334,58 @@ public class ChessGameManager {
 		selected.setSelected(false);
 	}
 	
+	public void doEnPassantMove(Move move) {
+		//take its figure
+		Cell selected = move.getOriginal();
+		Cell newLocation = move.getDistination();
+		PieceColor opponentColor;
+		
+		Piece piece = getRealCell(selected).getPiece();
+		newLocation = getRealCell(newLocation);
+		System.out.println("###EN PASSANT! MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
+		
+
+		
+		// Reset opponents pawn
+		PieceColor color = selected.getPiece().getColor();
+		
+		if(color == PieceColor.BLACK) 
+			opponentColor = PieceColor.WHITE;
+		else
+			opponentColor = PieceColor.BLACK;
+		
+		if(selected.getPiece().getType() != PieceType.PAWN) 
+			return;
+		
+		List<Move> recordedMoves = board.getRecordedMovesByColor(opponentColor);
+		Move lastOppenentMove = recordedMoves.get(recordedMoves.size() - 1);
+		
+		//if last opponents move is not pawn and it is not its first move ignore it
+		if(lastOppenentMove.getPiece().getType() != PieceType.PAWN)
+			return;
+		
+		Cell pieceToReset = getRealCell(lastOppenentMove.getDistination());
+		
+		pieceToReset.resetPiece();
+		//if it has opponents figure, eat it
+		//if(newLocation.getPiece() != null) {
+		//	newLocation.setPiece(piece);
+		//}
+		
+		//and move piece to a new location
+		newLocation.setPiece(piece);
+		
+		//unselect previous cell
+		selected.resetPiece();
+		selected.setSelected(false);
+		
+
+		
+		//record en passant move
+		board.recordMove(move);
+		
+	}
+	
 	public void doTempMove(Cell selected, Cell newLocation) {
 		//take its figure
 		Piece piece = getRealCell(selected).getPiece();
@@ -718,142 +404,24 @@ public class ChessGameManager {
 			return PieceColor.WHITE;
 	}
 
-	public List<Cell> getPiecesByColor(PieceColor color) {
-		List<Cell> pieces = new ArrayList<>();
-		Cell[][] cells = board.getBoardCells();
-		
-		for(int row = 0; row < cells[0].length; row++)
-		{
-			for(int col = 0; col < cells.length; col++)
-			{
-				if(cells[row][col].getPiece() != null && cells[row][col].getPiece().getColor() == color) 
-					pieces.add(cells[row][col]);
-			}	
-		}
-		
-		return pieces;
-	}
-
 	public Cell getRealCell(Cell distination) {
 		return board.getRealCell(distination);
 	}
 	
 	public List<Move> getAllPossibleMoves(Cell selected) {
-		Piece piece = selected.getPiece();
-		List<Move> allPossibleMoves = new ArrayList<Move>(); 
-		
-		List<Cell> moves = piece.getAllMoves(selected, false);
-		
-		for(Cell move : moves) {
-			allPossibleMoves.add(new Move(piece, selected, move, Condition.MOVE));
-		}
-		
-		List<Cell> captureMoves = piece.getAllCaptures(selected, false);
-		
-		for(Cell move : captureMoves) {
-			allPossibleMoves.add(new Move(piece, selected, move, Condition.ATTACK));
-		}
-		
-		return allPossibleMoves;
+		return board.getAllPossibleMoves(selected);
 	}
 	
 	public List<Move> getAllPossibleSafeMoves(Cell selected) {
-		Piece piece = selected.getPiece();
-		List<Move> allPossibleMoves = new ArrayList<Move>(); 
-		
-		List<Cell> moves = getAllSafeMoves(selected);
-		
-		for(Cell move : moves) {
-			allPossibleMoves.add(new Move(piece, selected, move, Condition.MOVE));
-		}
-		
-		List<Cell> captureMoves = getAllSafeCaptures(selected);
-		
-		for(Cell move : captureMoves) {
-			allPossibleMoves.add(new Move(piece, selected, move, Condition.ATTACK));
-		}
-		
-		return allPossibleMoves;
+		return board.getAllPossibleSafeMoves(selected);
 	}
-	
-	
 
 	public List<Cell> getAllSafeCaptures(Cell piece) {
-		List<Cell> allCaptures = piece.getPiece().getAllCaptures(piece, false);
-		List<Cell> safeCaptures = new ArrayList<>();
-		PieceColor color = null;
-		
-		if(piece.getPiece().getColor() == PieceColor.BLACK) 
-			color = PieceColor.WHITE;
-		else
-			color = PieceColor.BLACK;
-		
-		boolean isSafeCapture = true;
-		//TODO - something wrong here - fix it
-		for(Cell myCapture : allCaptures) {
-			List<Cell> attackers = getAttackingPiecesByColor(myCapture, piece, color);
-			//if there is at least one attacker who can eat, it is not safe
-			if(attackers.size() > 0) 
-				isSafeCapture = false;
-			
-			/*for(Cell attacker: attackers) {
-				//skip if attacker is victim 
-				if(myCapture.equals(attacker)) continue;
-				
-				List<Cell> attackerCaptures = attacker.getPiece().getAllCaptures(attacker, false);
-				for(Cell attackerCapture : attackerCaptures) {
-					if(myCapture.equals(attackerCapture))
-						isSafeCapture = false;
-				}
-			}*/
-			
-			if(isSafeCapture) {
-				safeCaptures.add(myCapture);
-				isSafeCapture = true;
-			}
-		}
-		
-		return safeCaptures;
+		return board.getAllSafeCaptures(piece);
 	}
 	
 	public List<Cell> getAllSafeMoves(Cell piece) {
-		List<Cell> safeMoves = new ArrayList<>();
-		List<Cell> allMoves = piece.getPiece().getAllMoves(piece, false);
-		PieceColor opponentColor = null;
-		
-		if(piece.getPiece().getColor() == PieceColor.BLACK) 
-			opponentColor = PieceColor.WHITE;
-		else
-			opponentColor = PieceColor.BLACK;
-		
-		//List<Cell> attackers = getAttackingPiecesByColor(opponentColor);
-		List<Cell> potentialAttackers = getPiecesByColor(opponentColor); 
-		boolean isSafeMove = true;
-		
-		//TODO - check if it works
-		for(Cell potentialMove : allMoves) {
-			isSafeMove = true;
-			for(Cell attacker: potentialAttackers) {
-				List<Cell> captureMoves = attacker.getPiece().getAllPotentialCaptures(attacker);
-				for(Cell attackerMove : captureMoves) {
-					if(attackerMove.equals(potentialMove)) {
-						if(attacker.getPiece().isItEatable(attacker, potentialMove, piece)) {
-							isSafeMove = false;
-							break;
-						}
-					}
-				}
-				if(!isSafeMove)
-					break;
-			}
-			
-			if(isSafeMove) {
-				safeMoves.add(potentialMove);
-				isSafeMove = true;
-			}
-		}
-		
-		return safeMoves;
+		return board.getAllSafeMoves(piece);
 	}
 
 	public boolean changeStatus(GameStatus gameStatus) {
@@ -862,54 +430,18 @@ public class ChessGameManager {
 	}
 
 	public boolean isMoveVeryBad(Move move, Cell weakPiece) {
-		PieceColor opponentColor = null;
-		
-		if(weakPiece.getPiece().getColor() == PieceColor.BLACK) 
-			opponentColor = PieceColor.WHITE;
-		else
-			opponentColor = PieceColor.BLACK;
-		List<Cell> potentialAttackers = getPiecesByColor(opponentColor); 
-		
-		for(Cell attacker: potentialAttackers) {
-			List<Cell> captureMoves = attacker.getPiece().getAllPotentialCaptures(attacker);
-			for(Cell attackerMove : captureMoves) {
-				if(attackerMove.equals(weakPiece)) {
-					if(attacker.getPiece().isItEatable(attacker, weakPiece, move.getOriginal())) {
-						return true;
-					}
-				}
-			}
-		}
-		
-		return false;
+		return board.isMoveVeryBad(move, weakPiece);
 	}
 	
 	public boolean isMoveVeryBad(Move move) {
-		PieceColor opponentColor = null;
-		Cell weakPiece = move.getDistination();
-		
-		if(move.getPiece().getColor() == PieceColor.BLACK) 
-			opponentColor = PieceColor.WHITE;
-		else
-			opponentColor = PieceColor.BLACK;
-		List<Cell> potentialAttackers = getPiecesByColor(opponentColor); 
-		
-		for(Cell attacker: potentialAttackers) {
-			List<Cell> captureMoves = attacker.getPiece().getAllPotentialCaptures(attacker);
-			for(Cell attackerMove : captureMoves) {
-				if(attackerMove.equals(weakPiece)) {
-					if(attacker.getPiece().isItEatable(attacker, weakPiece, move.getOriginal())) {
-						return true;
-					}
-				}
-			}
-		}
-		
-		return false;
+		return board.isMoveVeryBad(move);
 	}
 
 	public void setPieceToRealCell(Cell original, Piece piece) {
 		board.setPieceToRealCell(original, piece);
 	}
 
+	public List<Move> getGoodMoves(PieceColor color) {
+		return board.getGoodMoves(color);
+	}
 }

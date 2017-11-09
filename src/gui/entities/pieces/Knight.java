@@ -15,16 +15,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
-public class Knight implements Piece{
-	public String pieceID = "0";
-	private HBox ui;
-	private PieceColor color;
-	private List<Pattern> patterns = new ArrayList<>();
+public class Knight extends Piece{
 	
 	public Knight(PieceColor color, String id) {
-		this.color = color;
-		setId(id);
-		init();
+		super(color, id);
+		pieceValue = 3;
 	}
 	
 	@Override
@@ -96,12 +91,7 @@ public class Knight implements Piece{
 	public PieceType getType() {
 		return PieceType.KNIGHT;
 	}
-	
-	@Override
-	public PieceColor getColor() {
-		return color;
-	}
-	
+
 	private boolean isEmpty(Cell check, boolean includeImpossible, boolean isAttack) {
 		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
 		
@@ -195,11 +185,6 @@ public class Knight implements Piece{
 			}
 		}
 		return moves;
-	}
-
-	@Override
-	public HBox getUI() {
-		return ui;
 	}
 
 	@Override
@@ -314,13 +299,4 @@ public class Knight implements Piece{
 		
 	}
 
-	@Override
-	public void setId(String i) {
-		pieceID = i;
-	}
-
-	@Override
-	public String getId() {
-		return pieceID;
-	}
 }

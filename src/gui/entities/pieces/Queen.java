@@ -15,16 +15,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
-public class Queen implements Piece{
-	public String pieceID = "0";
-	private HBox ui;
-	private PieceColor color;
-	private List<Pattern> patterns = new ArrayList<>();
+public class Queen extends Piece{
 	
 	public Queen(PieceColor color, String id) {
-		this.color = color;
-		setId(id);
-		init();
+		super(color, id);
+		pieceValue = 9;
 	}
 	
 	@Override
@@ -79,11 +74,6 @@ public class Queen implements Piece{
 	@Override
 	public PieceType getType() {
 		return PieceType.QUEEN;
-	}
-	
-	@Override
-	public PieceColor getColor() {
-		return color;
 	}
 	
 	private boolean isEmpty(Cell check, boolean includeImpossible) {
@@ -188,11 +178,6 @@ public class Queen implements Piece{
 		return moves;
 	}
 
-	@Override
-	public HBox getUI() {
-		return ui;
-	}
-	
 	private boolean isValidForAttack(Cell check) {
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
@@ -456,14 +441,5 @@ public class Queen implements Piece{
 		}
 		
 	}
-	
-	@Override
-	public void setId(String i) {
-		pieceID = i;
-	}
 
-	@Override
-	public String getId() {
-		return pieceID;
-	}
 }

@@ -15,18 +15,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
-public class Bishop implements Piece{
-	public String pieceID = "0";
-	private HBox ui;
-	private PieceColor color;
-	private List<Pattern> patterns = new ArrayList<>();
-	
+public class Bishop extends Piece{
+
 	public Bishop(PieceColor color, String id) {
-		this.color = color;
-		setId(id);
-		init();
+		super(color, id);
+		pieceValue = 3;
 	}
-	
+
 	@Override
 	public void init() {
 		ui = new HBox();
@@ -63,11 +58,6 @@ public class Bishop implements Piece{
 	@Override
 	public PieceType getType() {
 		return PieceType.BISHOP;
-	}
-	
-	@Override
-	public PieceColor getColor() {
-		return color;
 	}
 	
 	private boolean isValidForAttack(Cell check) {
@@ -161,11 +151,6 @@ public class Bishop implements Piece{
 			} 
 		}
 		return moves;
-	}
-
-	@Override
-	public HBox getUI() {
-		return ui;
 	}
 
 	@Override
@@ -367,15 +352,5 @@ public class Bishop implements Piece{
 			return false;
 		}
 		
-	}
-
-	@Override
-	public void setId(String i) {
-		pieceID = i;
-	}
-
-	@Override
-	public String getId() {
-		return pieceID;
 	}
 }

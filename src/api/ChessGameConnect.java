@@ -5,6 +5,7 @@ import java.util.List;
 import gui.entities.Cell;
 import gui.entities.Move;
 import gui.entities.Piece;
+import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
 import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
@@ -79,19 +80,42 @@ public class ChessGameConnect {
 		return manager.getAllPossibleSafeMoves(piece);
 	}
 
+	/**
+	 * Checks if the move of the piece leads to loosing provided piece
+	 * @param move
+	 * @param weakPiece
+	 * @return
+	 */
 	public boolean isMoveVeryBad(Move move, Cell weakPiece) {
 		return manager.isMoveVeryBad(move, weakPiece);
 	}
 	
+	/**
+	 * Checks if the move of the piece leads to loosing one
+	 * @param move
+	 * @return
+	 */
 	public boolean isMoveVeryBad(Move move) {
 		return manager.isMoveVeryBad(move);
 	}
 	
-	public MoveType isCastlingAllowed(Cell selected, Cell newLocation) {
+	public Condition isCastlingAllowed(Cell selected, Cell newLocation) {
 		return manager.isCastlingAllowed(selected, newLocation);
+	}
+	
+	public Move isEnPassant(Cell selected) {
+		return manager.isEnPassantAllowed(selected);
 	}
 
 	public void setPieceToRealCell(Cell original, Piece piece) {
 		manager.setPieceToRealCell(original, piece);
+	}
+
+	public List<Move> getGoodMoves(PieceColor color) {
+		return manager.getGoodMoves(color);
+	}
+	
+	public void doEnPassantMove(Move move) {
+		manager.doEnPassantMove(move);
 	}
 }

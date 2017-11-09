@@ -47,7 +47,7 @@ public class Cell implements Parameter{
 		this.col = col;
 		this.row = row;
 		//set dummy figure color
-		setDummyPiece(new Dummy(color));
+		setDummyPiece(new Dummy(color, null));
 		cell = new HBox();
 		if(isBlack)
 			cell.setStyle("-fx-background-color: #7A645F;");
@@ -75,6 +75,7 @@ public class Cell implements Parameter{
 	
 	public void resetPiece() {
 		//cell.getChildren().remove(0);
+		cell.getChildren().clear();
 		piece = null;
 	}
 	

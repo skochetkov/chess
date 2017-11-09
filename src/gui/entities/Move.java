@@ -3,7 +3,7 @@ package gui.entities;
 import gui.entities.types.Condition;
 import gui.entities.types.PieceColor;
 
-public class Move {
+public class Move implements Comparable<Move>{
 	
 	private Cell original;
 	private Cell distination;
@@ -81,4 +81,13 @@ public class Move {
 	public void setWeight(int weight) {
 		this.weight = weight;
 	}
+	
+	@Override
+    public int compareTo(Move another) {
+        if (this.weight < another.weight){
+            return 1;
+        }else{
+            return -1;
+        }
+    }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import gui.ChessBoardController;
 import gui.entities.Cell;
+import gui.entities.Move;
 import gui.entities.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.PieceColor;
@@ -15,18 +16,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
-public class Pawn implements Piece{
-	public String pieceID = "0";
-	private HBox ui;
-	private PieceColor color;
-	private List<Pattern> patterns = new ArrayList<>();
+public class Pawn extends Piece{
 	//flag to temporary include potential moves and captures, must be reset back after each use
 	private boolean includePotentials = false;
 	
 	public Pawn(PieceColor color, String id) {
-		this.color = color;
-		setId(id);
-		init();
+		super(color, id);
+		pieceValue = 1;
 	}
 	
 	@Override
@@ -47,11 +43,6 @@ public class Pawn implements Piece{
 	@Override
 	public PieceType getType() {
 		return PieceType.PAWN;
-	}
-	
-	@Override
-	public PieceColor getColor() {
-		return color;
 	}
 	
 	private void initPatterns() {
@@ -205,7 +196,7 @@ public class Pawn implements Piece{
 		if(includePotentials && (temp.isEmpty() || (check.getPiece().getColor() != temp.getPiece().getColor()))) {
 			return true;
 		}
-		if(!includePotentials && !temp.isEmpty() && (check.getPiece().getColor() != temp.getPiece().getColor())) {
+		else if(!includePotentials && !temp.isEmpty() && (check.getPiece().getColor() != temp.getPiece().getColor())) {
 			return true;
 		}
 		else {
@@ -252,11 +243,6 @@ public class Pawn implements Piece{
 			
 		}	
 		return moves;
-	}
-
-	@Override
-	public HBox getUI() {
-		return ui;
 	}
 
 	@Override
@@ -325,15 +311,5 @@ public class Pawn implements Piece{
 			return false;
 		}
 		
-	}
-	
-	@Override
-	public void setId(String i) {
-		pieceID = i;
-	}
-
-	@Override
-	public String getId() {
-		return pieceID;
 	}
 }

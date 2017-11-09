@@ -1,11 +1,9 @@
 package engine;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import api.ChessGameConnect;
-import gui.entities.Cell;
 import gui.entities.Move;
 import gui.entities.Piece;
 import gui.entities.pieces.Bishop;
@@ -14,18 +12,17 @@ import gui.entities.pieces.Queen;
 import gui.entities.pieces.Rook;
 import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
-import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import util.UIUtil;
 
 public class Zhuli {
 	private ChessGameConnect api;
 	private PieceColor color;
 	private PieceColor opponentColor;
 	private Random rand = new Random(); 
+	private BrainInterface brain;
 	
 	public Zhuli(ChessGameConnect api, PieceColor color) {
 		this.api = api;
@@ -36,6 +33,12 @@ public class Zhuli {
 			opponentColor = PieceColor.WHITE;
 		else
 			opponentColor = PieceColor.BLACK;
+		
+		//initiate and assign brain
+		//this brain is just a processor and it doesn't have any memory, it doesn't care of who it belongs to
+		//it just calculates the best way to solve the concrete problem
+		//brain = new Brain1200(api);
+		brain = new Brain199(api);
 	}
 	
 	public void setColor(PieceColor color) {
@@ -81,14 +84,15 @@ public class Zhuli {
 				String s = "Oh, my King is uder attack dear?";
 				alert.setContentText(s);
 				alert.show();*/
-				saveMyKing(moves);
+				Move saverMove = brain.saveMyKing(moves);
+				api.doMove(saverMove);
 				return;
 			}
 			
 		}
-		List<Cell> pieces = api.getPiecesByColor(color);
 		
-		Move move = getGoodMove(pieces);
+		
+		Move move = getGoodMove();
 		Condition condition = move.getCondition() ;
 		
 		//Now we have (may be) a list of good moves, let's select one
@@ -109,6 +113,9 @@ public class Zhuli {
 				api.doMove(move);
 				api.doMove(move.getFollowingMove());
 			}
+			else if(condition == Condition.EN_PASSANT_LEFT || condition == Condition.EN_PASSANT_RIGHT) {
+				api.doEnPassantMove(move);
+			}
 			else {
 				api.doMove(move);
 			}
@@ -119,7 +126,7 @@ public class Zhuli {
 			api.changeStatus(GameStatus.GAME_OVER);
 			Alert alert = new Alert(AlertType.INFORMATION);
 			alert.setTitle("");
-			alert.setHeaderText("Game is Over Alert");
+			alert.setHeaderText("Game is Over. I have nowhere to move.");
 			String s = "Game is Over";
 			alert.setContentText(s);
 			alert.show();
@@ -143,96 +150,23 @@ public class Zhuli {
 		}*/
 	}
 	
-	private Move getGoodMove(List<Cell> pieces) {
+	private List<Move> getGoodMoves() {
+		
+		return api.getGoodMoves(color);
+	}
+	
+	private Move getGoodMove() {
 		System.out.println("getGoodMove: enter");
-		List<Move> goodMoves = new ArrayList<>();
-		Cell opponentKing = api.getPiecesByTypeAndColor(PieceType.KING, opponentColor).get(0);
-		Cell myKing = api.getPiecesByTypeAndColor(PieceType.KING, color).get(0);
-		List<Move> possibleMoves = new ArrayList<>();
 		
-		//first dummiest version of AI
-		//find first good move
-		for(Cell piece: pieces) {
-			//if no moves or no attack, then we ignore those
-			if(piece.equals(myKing)) {
-				possibleMoves = api.getAllPossibleSafeMoves(piece);
-				Cell newLocation = new Cell(piece.getCol() - 2, piece.getRow());
-				MoveType castlingType = api.isCastlingAllowed(piece, newLocation);
-				if(castlingType == MoveType.CASTLING_ON_RIGHT) {
-					Move castlingOnRight = new Move(piece.getPiece(), piece, newLocation, Condition.CASTLING_ON_RIGHT);
-					
-					Cell rook = new Cell(0, myKing.getRow());
-					Cell realRook = api.getRealCell(rook);
-					
-					
-					if(realRook != null && realRook.getPiece() != null) {
-						rook.moveRight(3);
-						castlingOnRight.setFollowingMove(new Move(realRook.getPiece(), realRook, rook, Condition.MOVE));
-						possibleMoves.add(castlingOnRight);
-					}
-				}
-				
-				newLocation = new Cell(piece.getCol() + 2, piece.getRow());
-				castlingType = api.isCastlingAllowed(piece, newLocation);
-				if(castlingType == MoveType.CASTLING_ON_LEFT) {
-					Move castlingOnLeft = new Move(piece.getPiece(), piece, newLocation, Condition.CASTLING_ON_LEFT);
-					Cell rook = new Cell(7, myKing.getRow());
-					Cell realRook = api.getRealCell(rook);
-					
-					
-					if(realRook != null && realRook.getPiece() != null) {
-						rook.moveLeft(2);
-						castlingOnLeft.setFollowingMove(new Move(realRook.getPiece(), realRook, rook, Condition.MOVE));
-						possibleMoves.add(castlingOnLeft);
-					}
-				}
-			}
-			else {
-				possibleMoves = api.getAllPossibleMoves(piece);
-			}
-			
-			System.out.println("Possible moves for " + piece.getPiece().getType() + " ("+piece.getNotation()+"): " + possibleMoves.size());
-			
-			if(possibleMoves.size() == 0) {
-				continue;
-			}
-			
-			//THIS IS BIG TODO
-			for (Move m : possibleMoves) {
-				Condition cond = m.getCondition();
-				//check if the move is not very bad
-				if(!piece.equals(myKing) && isMoveVeryBad(m, myKing)) {
-					continue;
-				}
-				//check if castling puts the king under attack
-				else if(cond == Condition.CASTLING_ON_LEFT || cond == Condition.CASTLING_ON_RIGHT) {
-					if(isMoveVeryBad(m)) {
-						continue;
-					}
-				}
-				
-				if(m.getCondition() == Condition.ATTACK) {
-					//if by chance you can eat... well... the king... you can do it
-					if(m.getDistination().equals(opponentKing)) {
-						//change condition from attack to mate
-						m.setCondition(Condition.MATE);
-						return m;
-					}
-						
-					goodMoves.add(m);
-				}
-				
-				goodMoves.add(m);
-			}
-		}
+		List<Move> goodMoves = getGoodMoves();
 		
-		if(goodMoves.size() == 0)
-			return new Move(Condition.UNKNOWN);
+		if(goodMoves.size() == 1 && goodMoves.get(0).getCondition() == Condition.UNKNOWN)
+			return goodMoves.get(0);
 		
 		///////////////////////////////// PLUG IN BRAIN ///////////////////////////////////////////////////
 		
 		
-		Move move = brain1(goodMoves);
+		Move move = brain.thinkForTheBestMove(goodMoves);
 		
 		///////////////////////////////// BRAIN IS PLUGGED IN ////////////////////////////////
 		
@@ -256,141 +190,6 @@ public class Zhuli {
 		return move;
 	}
 	
-	/**
-	 * CAUTION! WORK WITH BRAIN! 
-	 * This is the first non random brain where we assign some kind of weight to moves
-	 * @param goodMoves
-	 * @return
-	 */
-	private Move brain1(List<Move> goodMoves) {
-		// The first dumbest idea - random move
-		//int value = rand.nextInt(goodMoves.size()); 
-		//Move move = goodMoves.get(value);
-		
-		//TODO just for experiment we assign some kind of weight to moves
-		//do some preparation before weighting
-		System.out.println("GOOD MOVES:");
-						
-		for(Move m: goodMoves) {
-			System.out.println(m.getPiece().getType() + " " + m.getOriginal().getNotation() + ":" + m.getDistination().getNotation());
-			if(m.getPiece().getType() == PieceType.PAWN) {
-				MoveType promotionType = isPossiblyPromoted(m.getOriginal(), m.getDistination());
-				
-				if(promotionType == MoveType.POSSIBLE_PROMOTION) {
-					m.setCondition(Condition.POSSIBLE_PROMOTION);
-				}
-			}
-		}
-						
-		// Assign weight
-		for(Move m: goodMoves) {
-			Condition cond = m.getCondition();
-							
-			if(cond == Condition.POSSIBLE_PROMOTION)
-				m.setWeight(8);
-			else if(cond == Condition.CASTLING_ON_LEFT || cond == Condition.CASTLING_ON_RIGHT)
-				m.setWeight(6);
-			else if(cond == Condition.ATTACK)
-				m.setWeight(5);
-			else if(cond == Condition.MOVE)
-				m.setWeight(4);
-			else
-				m.setWeight(1);
-		}
-						
-		Move move = goodMoves.get(0);
-		// Take the one with highest weight
-		for(Move m: goodMoves) {
-			if(m.getWeight() > move.getWeight()) {
-				move = m;
-			}
-		}
-		return move;
-	}
-
-	/**
-	 * Checks if the move is very bad, e.g, opening my king to attacker
-	 * All other not good moves (e.g, opening Queen for attacker) will be handled in other place because it might be intention to do that way
-	 * @param m
-	 * @return
-	 */
-	private boolean isMoveVeryBad(Move move, Cell weakPiece) {
-		return api.isMoveVeryBad(move, weakPiece);
-	}
 	
-	private boolean isMoveVeryBad(Move move) {
-		return api.isMoveVeryBad(move);
-	}
-	
-	public MoveType isPossiblyPromoted(Cell selected, Cell newLocation) {
-		MoveType type = MoveType.ILLIGAL;
-		
-		if(selected.getPiece().getType() == PieceType.PAWN) {
-			if(newLocation.getRow() == 0 || newLocation.getRow() == 7) {
-				//UIUtil.showPromotionBox(null, selected, newLocation) ;
-				type = MoveType.POSSIBLE_PROMOTION;
-			}
-		}
-		return type;
-	}
-
-	//TODO improve, it is very dummy solution right now
-	private void saveMyKing(List<Move> safeMoves) {
-		System.out.println("It is not mate, it is good, now I need to choose a good move to save my king");
-		int value = rand.nextInt(safeMoves.size()); 
-		api.doMove(safeMoves.get(value));
-		/*Cell king = api.getPiecesByTypeAndColor(PieceType.KING, color).get(0);
-		
-		List<Cell> kingsMoves = api.getAllSafeMoves(king);
-		List<Cell> kingsCaptures = api.getAllSafeCaptures(king); 
-		List<Cell> whoEndangersKing = api.getWhoEndangersMe(king);//TODO - is it possible to have more than one here? If yes, we have a problem...
-		List<Cell> whoCanSaveKing = api.getWhoCanDefendMe(king);
-		
-		//check if there is a saver, use it
-		for(Cell attacker: whoEndangersKing) {
-			if(whoCanSaveKing.size() > 0) {
-				
-				for(Cell saver : whoCanSaveKing) {
-					List<Move> possibleMoves = api.getAllPossibleMoves(saver);
-					for (Move m : possibleMoves) {
-						if(m.getCondition() == Condition.ATTACK) {
-							if(attacker.equals(m.getDistination())) {
-								System.out.println("I found a saver");
-								api.doMove(m);
-								return;
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		System.out.println("No saver found, I will try to find if my king can defend himself");
-		//TODO move if you have an option
-		System.out.println("Checking if there is place to move...");
-		
-		if(kingsMoves.size() > 0) {
-			System.out.println("There is place to move. I am moving...");
-			int value = rand.nextInt(kingsMoves.size()); 
-			Move m = new Move(king.getPiece(), king, kingsMoves.get(value), Condition.ATTACK );
-			api.doMove(m);
-			return;
-		}
-		
-		System.out.println("Nowhere to move, ");
-		//if there is no savers and nowhere to move, try to save yourself
-		for(Cell capture : kingsCaptures) {
-			for(Cell attacker: whoEndangersKing) {
-				if(capture.equals(attacker)) {
-					System.out.println("Okey, my king can attack!");
-					Move m = new Move(king.getPiece(), king, attacker, Condition.ATTACK );
-					api.doMove(m);
-					return;
-				}
-			}
-		}
-		
-		System.out.println("Well, perheps it is mate... ");*/
-	}
 
 }
