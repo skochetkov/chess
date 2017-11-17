@@ -1,6 +1,5 @@
 package gui.entities;
 
-import gui.ChessBoardController;
 import gui.entities.pieces.Dummy;
 import gui.entities.types.CellType;
 import gui.entities.types.PieceColor;
@@ -14,20 +13,20 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
+import model.ChessGameManager;
 
 public class Cell implements Parameter{
 	private boolean isBlack;
 	private boolean isSelected;
 	private CellType type = CellType.NONE;
 	private Piece piece;
-	private ChessBoardController board;
+	private ChessGameManager manager;
 	private HBox cell;
 	private int col, row;
 	
-	public Cell(boolean isBlack, ChessBoardController board, int col, int row) {
+	public Cell(boolean isBlack, ChessGameManager manager, int col, int row) {
 		this.isBlack = isBlack;
-		this.board = board;
+		this.manager = manager;
 		this.col = col;
 		this.row = row;
 		
@@ -62,6 +61,14 @@ public class Cell implements Parameter{
 		this.row = row;
 	}
 	
+	public ChessGameManager getCellManager() {
+		return manager;
+	}
+	
+	public boolean getIsBlack() {
+		return isBlack;
+	}
+	
 	public void setPiece(Piece figure) {
 		cell.getChildren().clear();
 		cell.getChildren().add(figure.getUI());
@@ -93,29 +100,12 @@ public class Cell implements Parameter{
 		cell.setOnMouseClicked(new EventHandler<MouseEvent>() {
 		    @Override public void handle(MouseEvent e) {
 		    		//if nothing selected, we assume that the user want to select figure which he wants to move
-		    		if(board.getSelectedCell() == null)
-		    			board.askChessGame(Requests.I_WAS_SELECTED_BY_USER, Cell.this);
-		    		else
-		    			board.askChessGame(Requests.I_WAS_PROPOSED_BY_USER, Cell.this);
-		        /*if(isSelected()) {
-		    			setSelected(false);
+		    		if(manager.getSelectedCell() == null) {
+		    			manager.whatToDoNext(Requests.I_WAS_SELECTED_BY_USER, Cell.this);
 		    		}
-		    		else
-		    		{
-		    			setSelected(true);
-		    			board.askChessGame(Requests.I_WAS_SELECTED_BY_USER, Cell.this);
-		    		}*/
-		    }
-		});
-	}
-	
-	public void initPromotionEvent(Stage dialog, ChessBoardController controlBoard, Cell newLocation, Cell oldPiece) {
-		cell.setOnMouseClicked(new EventHandler<MouseEvent>() {
-		    @Override public void handle(MouseEvent e) {
-		    		dialog.hide();
-		    		controlBoard.replacePiece(newLocation, Cell.this, oldPiece);
-		    		//TODO check if it works correctly
-		    		controlBoard.askChessGame(Requests.I_WAS_PROPOSED_BY_USER, newLocation);
+		    		else {
+		    			manager.whatToDoNext(Requests.I_WAS_PROPOSED_BY_USER, Cell.this);
+		    		}
 		    }
 		});
 	}

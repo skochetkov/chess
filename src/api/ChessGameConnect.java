@@ -2,6 +2,7 @@ package api;
 
 import java.util.List;
 
+import gui.ChessBoardController;
 import gui.entities.Cell;
 import gui.entities.Move;
 import gui.entities.Piece;
@@ -117,5 +118,10 @@ public class ChessGameConnect {
 	
 	public void doEnPassantMove(Move move) {
 		manager.doEnPassantMove(move);
+	}
+
+	//Not the best solution to give reference to the controller (cloned)
+	public ChessBoardController cloneBoard() {
+		return manager.cloneController();
 	}
 }

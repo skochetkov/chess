@@ -37,36 +37,52 @@ import tests.TestCases;
 import util.UIUtil;
 
 public class ChessBoardController {
-	private ChessGameManager game;
+	//private ChessGameManager game;
 	public static Cell[][] cells = new Cell[8][8];
 	private List<Move> moves = new ArrayList<>();
-	
-	
-	public ChessBoardController(ChessGameManager game) {
-		this.game = game;
-		initBoard();
+
+	public void initPieces() {
+		//Init white pieces
+		cells[1][0].setPiece(new Pawn(PieceColor.BLACK, "1"));
+		cells[1][1].setPiece(new Pawn(PieceColor.BLACK, "2"));
+		cells[1][2].setPiece(new Pawn(PieceColor.BLACK, "3"));
+		cells[1][3].setPiece(new Pawn(PieceColor.BLACK, "4"));
+		cells[1][4].setPiece(new Pawn(PieceColor.BLACK, "5"));
+		cells[1][5].setPiece(new Pawn(PieceColor.BLACK, "6"));
+		cells[1][6].setPiece(new Pawn(PieceColor.BLACK, "7"));
+		cells[1][7].setPiece(new Pawn(PieceColor.BLACK, "8"));
 		
-		initPieces();
-		//initTests();
+		cells[0][0].setPiece(new Rook(PieceColor.BLACK, "9"));
+		cells[0][1].setPiece(new Knight(PieceColor.BLACK, "10"));
+		cells[0][2].setPiece(new Bishop(PieceColor.BLACK, "11"));
+		cells[0][3].setPiece(new Queen(PieceColor.BLACK, "12"));
+		cells[0][4].setPiece(new King(PieceColor.BLACK, "13"));
+		cells[0][5].setPiece(new Bishop(PieceColor.BLACK, "14"));
+		cells[0][6].setPiece(new Knight(PieceColor.BLACK, "15"));
+		cells[0][7].setPiece(new Rook(PieceColor.BLACK, "16"));
+		
+		cells[6][0].setPiece(new Pawn(PieceColor.WHITE, "17"));
+		cells[6][1].setPiece(new Pawn(PieceColor.WHITE, "18"));
+		cells[6][2].setPiece(new Pawn(PieceColor.WHITE, "19"));
+		cells[6][3].setPiece(new Pawn(PieceColor.WHITE, "20"));
+		cells[6][4].setPiece(new Pawn(PieceColor.WHITE, "21"));
+		cells[6][5].setPiece(new Pawn(PieceColor.WHITE, "22"));
+		cells[6][6].setPiece(new Pawn(PieceColor.WHITE, "23"));
+		cells[6][7].setPiece(new Pawn(PieceColor.WHITE, "24"));
+		
+		cells[7][0].setPiece(new Rook(PieceColor.WHITE, "25"));
+		cells[7][1].setPiece(new Knight(PieceColor.WHITE, "26"));
+		cells[7][2].setPiece(new Bishop(PieceColor.WHITE, "27"));
+		cells[7][3].setPiece(new Queen(PieceColor.WHITE, "28"));
+		cells[7][4].setPiece(new King(PieceColor.WHITE, "29"));
+		cells[7][5].setPiece(new Bishop(PieceColor.WHITE, "30"));
+		cells[7][6].setPiece(new Knight(PieceColor.WHITE, "31"));
+		cells[7][7].setPiece(new Rook(PieceColor.WHITE, "32"));
 	}
 	
-	private void initTests() {
-		
-		TestCases testCase  = TestCases.DEFAULT;
-		
-		//Select test case
-		//testCase = TestCases.CASTLING_BLACK;
-		//testCase = TestCases.CASTLING_WHITE;
-		//testCase = TestCases.PAWN_ADVANCES;
-		//testCase = TestCases.PAWN_ADVANCES_BLACK;
-		//testCase = TestCases.EN_PASSANT_WHITE;
-		//testCase = TestCases.EN_PASSANT_BLACK;
-		testCase = TestCases.WEIGHT_BLACK;
-		TestController.getTestCase(testCase, cells);
-		
-	} 
-
-	private void initBoard() {
+	public ChessBoardController clone() {
+		ChessBoardController cloned = new ChessBoardController();
+		Cell[][] cells2 = new Cell[8][8];
 		int count = 0;
 		
 		for(int row = 0; row < cells[0].length; row++)
@@ -74,12 +90,50 @@ public class ChessBoardController {
 			count++;
 			for(int col = 0; col < cells.length; col++)
 		   {
-		      cells[row][col] = new Cell((count % 2 == 0) ? true : false, this, col, row);
+		      cells2[row][col] = new Cell(cells[row][col].getIsBlack(), null, //cells[row][col].getCellManager(), 
+		    		  cells[row][col].getCol(), cells[row][col].getRow());
+		      
+		      count++;
+		   }		   
+		}
+		cloned.setCells(cells2);
+		return cloned;
+	}
+	
+	private void setCells(Cell[][] cells2) {
+		cells = cells2;
+	}
+
+	public void initBoard(ChessGameManager manager) {
+		int count = 0;
+		
+		for(int row = 0; row < cells[0].length; row++)
+		{
+			count++;
+			for(int col = 0; col < cells.length; col++)
+		   {
+		      cells[row][col] = new Cell((count % 2 == 0) ? true : false, manager, col, row);
 		      
 		      count++;
 		   }		   
 		}
 	}
+	
+	public void initTests() {
+		
+		TestCases testCase  = TestCases.DEFAULT;
+		
+		//Select test case
+		//testCase = TestCases.CASTLING_BLACK;
+		//testCase = TestCases.CASTLING_WHITE;
+		testCase = TestCases.PAWN_ADVANCES;
+		//testCase = TestCases.PAWN_ADVANCES_BLACK;
+		//testCase = TestCases.EN_PASSANT_WHITE;
+		//testCase = TestCases.EN_PASSANT_BLACK;
+		//testCase = TestCases.WEIGHT_BLACK;
+		TestController.getTestCase(testCase, cells);
+		
+	} 
 	
 	public void recordMove(Move move) {
 		move.getPiece().setMoved();
@@ -135,52 +189,6 @@ public class ChessBoardController {
 		}
 	}
 	
-	
-	private void initPieces() {
-		//Init white pieces
-		cells[1][0].setPiece(new Pawn(PieceColor.BLACK, "1"));
-		cells[1][1].setPiece(new Pawn(PieceColor.BLACK, "2"));
-		cells[1][2].setPiece(new Pawn(PieceColor.BLACK, "3"));
-		cells[1][3].setPiece(new Pawn(PieceColor.BLACK, "4"));
-		cells[1][4].setPiece(new Pawn(PieceColor.BLACK, "5"));
-		cells[1][5].setPiece(new Pawn(PieceColor.BLACK, "6"));
-		cells[1][6].setPiece(new Pawn(PieceColor.BLACK, "7"));
-		cells[1][7].setPiece(new Pawn(PieceColor.BLACK, "8"));
-		
-		cells[0][0].setPiece(new Rook(PieceColor.BLACK, "9"));
-		cells[0][1].setPiece(new Knight(PieceColor.BLACK, "10"));
-		cells[0][2].setPiece(new Bishop(PieceColor.BLACK, "11"));
-		cells[0][3].setPiece(new Queen(PieceColor.BLACK, "12"));
-		cells[0][4].setPiece(new King(PieceColor.BLACK, "13"));
-		cells[0][5].setPiece(new Bishop(PieceColor.BLACK, "14"));
-		cells[0][6].setPiece(new Knight(PieceColor.BLACK, "15"));
-		cells[0][7].setPiece(new Rook(PieceColor.BLACK, "16"));
-		
-		cells[6][0].setPiece(new Pawn(PieceColor.WHITE, "17"));
-		cells[6][1].setPiece(new Pawn(PieceColor.WHITE, "18"));
-		cells[6][2].setPiece(new Pawn(PieceColor.WHITE, "19"));
-		cells[6][3].setPiece(new Pawn(PieceColor.WHITE, "20"));
-		cells[6][4].setPiece(new Pawn(PieceColor.WHITE, "21"));
-		cells[6][5].setPiece(new Pawn(PieceColor.WHITE, "22"));
-		cells[6][6].setPiece(new Pawn(PieceColor.WHITE, "23"));
-		cells[6][7].setPiece(new Pawn(PieceColor.WHITE, "24"));
-		
-		cells[7][0].setPiece(new Rook(PieceColor.WHITE, "25"));
-		cells[7][1].setPiece(new Knight(PieceColor.WHITE, "26"));
-		cells[7][2].setPiece(new Bishop(PieceColor.WHITE, "27"));
-		cells[7][3].setPiece(new Queen(PieceColor.WHITE, "28"));
-		cells[7][4].setPiece(new King(PieceColor.WHITE, "29"));
-		cells[7][5].setPiece(new Bishop(PieceColor.WHITE, "30"));
-		cells[7][6].setPiece(new Knight(PieceColor.WHITE, "31"));
-		cells[7][7].setPiece(new Rook(PieceColor.WHITE, "32"));
-	}
-	
-	
-
-	public void askChessGame(Requests req, Parameter param) {
-		game.whatToDoNext(req, param);
-	}
-
 	public Cell getSelectedCell() {
 		for(int row = 0; row < cells[0].length; row++)
 		{
@@ -207,8 +215,31 @@ public class ChessBoardController {
 		newCell.setPiece(piece.getPiece());
 		//cells[oldPiece.getRow()][oldPiece.getCol()].resetPiece();
 		//cells[oldPiece.getRow()][oldPiece.getCol()].setSelected(false);
-		game.doMove(new Move(newCell.getPiece(), newCell, oldPiece, Condition.MOVE));
+		doMove(new Move(newCell.getPiece(), newCell, oldPiece, Condition.MOVE));
 		
+	}
+	
+	public void doMove(Move move) {
+		//take its figure
+		Cell selected = move.getOriginal();
+		Cell newLocation = move.getDistination();
+		
+		Piece piece = getRealCell(selected).getPiece();
+		newLocation = getRealCell(newLocation);
+		System.out.println("###MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
+		
+		recordMove(move);
+		//if it has opponents figure, eat it
+		//if(newLocation.getPiece() != null) {
+		//	newLocation.setPiece(piece);
+		//}
+		
+		//and move piece to a new location
+		newLocation.setPiece(piece);
+		
+		//unselect previous cell
+		selected.resetPiece();
+		selected.setSelected(false);
 	}
 
 	public void setPieceToRealCell(Cell original, Piece piece) {
@@ -706,7 +737,6 @@ public class ChessBoardController {
 		
 		if(selected.getPiece().getType() == PieceType.PAWN) {
 			if(newLocation.getRow() == 0 || newLocation.getRow() == 7) {
-				UIUtil.showPromotionBox(this, selected, newLocation) ;
 				type = MoveType.PROMOTION;
 			}
 		}

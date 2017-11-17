@@ -33,7 +33,10 @@ public class ChessGameManager {
 	private GameStatus status = GameStatus.NONE;
 	
 	public ChessGameManager() {
-		board = new ChessBoardController(this);
+		board = new ChessBoardController();
+		board.initBoard(this);
+		//board.initPieces();
+		board.initTests();
         
 		api = new ChessGameConnect(this);
         //regular scenario playing user with computer
@@ -175,8 +178,9 @@ public class ChessGameManager {
 						break;
 					}
 					case POSSIBLE_PROMOTION: {
-							return;
-						}
+						UIUtil.showPromotionBox(this, selected, param) ;
+						return;
+					}
 					case UNKNOWN: {
 						return;
 					}
@@ -312,26 +316,7 @@ public class ChessGameManager {
 	}
 
 	public void doMove(Move move) {
-		//take its figure
-		Cell selected = move.getOriginal();
-		Cell newLocation = move.getDistination();
-		
-		Piece piece = getRealCell(selected).getPiece();
-		newLocation = getRealCell(newLocation);
-		System.out.println("###MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
-		
-		board.recordMove(move);
-		//if it has opponents figure, eat it
-		//if(newLocation.getPiece() != null) {
-		//	newLocation.setPiece(piece);
-		//}
-		
-		//and move piece to a new location
-		newLocation.setPiece(piece);
-		
-		//unselect previous cell
-		selected.resetPiece();
-		selected.setSelected(false);
+		board.doMove(move);
 	}
 	
 	public void doEnPassantMove(Move move) {
@@ -443,5 +428,17 @@ public class ChessGameManager {
 
 	public List<Move> getGoodMoves(PieceColor color) {
 		return board.getGoodMoves(color);
+	}
+
+	public Cell getSelectedCell() {
+		return board.getSelectedCell();
+	}
+
+	public void replacePiece(Cell newLocation, Cell cell, Cell oldPiece) {
+		board.replacePiece(newLocation, cell, oldPiece);
+	}
+
+	public ChessBoardController cloneController() {
+		return board.clone();
 	}
 }

@@ -159,6 +159,7 @@ public class Zhuli {
 		System.out.println("getGoodMove: enter");
 		
 		List<Move> goodMoves = getGoodMoves();
+		System.out.println("there are " + goodMoves.size() + " good moves");
 		
 		if(goodMoves.size() == 1 && goodMoves.get(0).getCondition() == Condition.UNKNOWN)
 			return goodMoves.get(0);
