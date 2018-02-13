@@ -37,8 +37,8 @@ public class Zhuli {
 		//initiate and assign brain
 		//this brain is just a processor and it doesn't have any memory, it doesn't care of who it belongs to
 		//it just calculates the best way to solve the concrete problem
-		//brain = new Brain1200(api, color);
-		brain = new Brain199(api);
+		brain = new Brain1200(api, color);
+		//brain = new Brain199(api);
 	}
 	
 	public void setColor(PieceColor color) {

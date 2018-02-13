@@ -23,7 +23,6 @@ public class Cell implements Parameter{
 	private Piece piece;
 	private ChessGameManager manager;
 	private HBox cell;
-	private HBox ui;
 	private int col, row;
 	
 	public Cell(boolean isBlack, ChessGameManager manager, int col, int row) {
@@ -145,8 +144,6 @@ public class Cell implements Parameter{
 	}
 
 	public boolean moveDown(int i) {
-		//check if it is not empty or it's a border
-		//if() return false;
 		row += i;
 		return true;
 	}

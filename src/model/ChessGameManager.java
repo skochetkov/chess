@@ -1,6 +1,5 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import api.ChessGameConnect;
@@ -14,15 +13,9 @@ import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
-import gui.entities.types.MoveType;
 import gui.entities.types.Requests;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import util.UIUtil;
 
 public class ChessGameManager {

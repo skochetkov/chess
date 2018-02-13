@@ -9,7 +9,6 @@ import gui.entities.Cell;
 import gui.entities.types.Pattern;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 
 public abstract class Piece {
 	
@@ -34,7 +33,7 @@ public abstract class Piece {
 		
 		imageView = new ImageView();
 		imageView.setImage(new Image(imageUrl));
-		//ui.getChildren().add(imageView);
+
 		initPatterns();
 	}
 	

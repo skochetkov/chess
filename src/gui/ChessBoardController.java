@@ -1,12 +1,10 @@
 package gui;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import gui.entities.Cell;
 import gui.entities.Move;
-import gui.entities.Parameter;
 import gui.entities.pieces.Bishop;
 import gui.entities.pieces.King;
 import gui.entities.pieces.Knight;
@@ -19,22 +17,8 @@ import gui.entities.types.GameStatus;
 import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
-import gui.entities.types.Requests;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
 import model.ChessGameManager;
 import tests.TestCases;
-import util.UIUtil;
 
 public class ChessBoardController {
 	//private ChessGameManager game;
@@ -247,15 +231,12 @@ public class ChessBoardController {
 
 	public List<Move> checkIfItIsMate(GameStatus status) {
 		PieceColor color = null;
-		PieceColor opponentColor = null;
 		
 		if(status == GameStatus.WHITE_MOVE) {
 			color = PieceColor.WHITE;
-			opponentColor = PieceColor.BLACK;
 		}
 		else {
 			color = PieceColor.BLACK;
-			opponentColor = PieceColor.WHITE;
 		}
 		
 		//Get the king
@@ -460,12 +441,6 @@ public class ChessBoardController {
 	
 	public List<Move> getGoodMoves(PieceColor color) {
 		List<Cell> pieces = getPiecesByColor(color);
-		PieceColor opponentColor = null;
-		
-		if(color == PieceColor.BLACK) 
-			opponentColor = PieceColor.WHITE;
-		else
-			opponentColor = PieceColor.BLACK;
 		
 		List<Move> goodMoves = new ArrayList<>();
 		//Cell opponentKing = getPiecesByTypeAndColor(PieceType.KING, opponentColor).get(0);
@@ -756,15 +731,12 @@ public class ChessBoardController {
 	
 	public boolean checkIfItIsCheck(GameStatus status) {
 		boolean isCheck = false;
-		PieceColor color = null;
 		PieceColor opponentColor = null;
 		
 		if(status == GameStatus.WHITE_MOVE) {
-			color = PieceColor.WHITE;
 			opponentColor = PieceColor.BLACK;
 		}
 		else {
-			color = PieceColor.BLACK;
 			opponentColor = PieceColor.WHITE;
 		}
 		

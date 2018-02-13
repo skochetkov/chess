@@ -10,9 +10,6 @@ import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Pattern;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 
 public class King extends Piece{
 	

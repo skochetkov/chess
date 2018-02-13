@@ -60,17 +60,13 @@ public class ChessApplication extends Application {
 	}
 	
 	private void initBoard() {
-		int count = 0;
-		
 		Cell[][] cells = game.getBoardCells();
 		for(int row = 0; row < cells[0].length; row++)
 		{
-			count++;
 			for(int col = 0; col < cells.length; col++)
-		   {
-		      board.add(cells[row][col].getCell(), col, row);
-		      count++;
-		   }		   
+			{
+				board.add(cells[row][col].getCell(), col, row);
+			}		   
 		}
 	}
 	

@@ -6,7 +6,6 @@ import gui.entities.Cell;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Pattern;
-import javafx.scene.layout.HBox;
 
 public class Dummy  extends Piece{
 	public Dummy(PieceColor color, String id) {

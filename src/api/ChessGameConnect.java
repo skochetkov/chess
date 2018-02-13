@@ -8,7 +8,6 @@ import gui.entities.Move;
 import gui.entities.pieces.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
-import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import model.ChessGameManager;
