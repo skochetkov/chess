@@ -1,6 +1,7 @@
 package gui.entities;
 
 import gui.entities.pieces.Dummy;
+import gui.entities.pieces.Piece;
 import gui.entities.types.CellType;
 import gui.entities.types.PieceColor;
 import gui.entities.types.Requests;
@@ -22,6 +23,7 @@ public class Cell implements Parameter{
 	private Piece piece;
 	private ChessGameManager manager;
 	private HBox cell;
+	private HBox ui;
 	private int col, row;
 	
 	public Cell(boolean isBlack, ChessGameManager manager, int col, int row) {
@@ -71,7 +73,7 @@ public class Cell implements Parameter{
 	
 	public void setPiece(Piece figure) {
 		cell.getChildren().clear();
-		cell.getChildren().add(figure.getUI());
+		cell.getChildren().add(figure.getImageView());
 		this.piece = figure;
 		
 	}
@@ -88,7 +90,7 @@ public class Cell implements Parameter{
 	
 	public void replacePiece(Piece fig) {
 		cell.getChildren().clear();
-		cell.getChildren().add(fig.getUI());
+		cell.getChildren().add(fig.getImageView());
 		this.piece = fig;
 	}
 	

@@ -1,5 +1,6 @@
 package gui.entities;
 
+import gui.entities.pieces.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.PieceColor;
 

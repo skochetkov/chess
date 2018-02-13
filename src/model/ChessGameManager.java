@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import api.ChessGameConnect;
-import engine.Zhuli;
+import brain.Zhuli;
 import gui.ChessBoardController;
 import gui.entities.Cell;
 import gui.entities.Move;
-import gui.entities.Piece;
 import gui.entities.Parameter;
+import gui.entities.pieces.Piece;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Condition;

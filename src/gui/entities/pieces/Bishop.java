@@ -5,7 +5,6 @@ import java.util.List;
 
 import gui.ChessBoardController;
 import gui.entities.Cell;
-import gui.entities.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
@@ -18,26 +17,13 @@ import javafx.scene.layout.HBox;
 public class Bishop extends Piece{
 
 	public Bishop(PieceColor color, String id) {
-		super(color, id);
+		super();
+		init(color, id, this.getClass().getSimpleName());
 		pieceValue = 3;
 	}
-
-	@Override
-	public void init() {
-		ui = new HBox();
-		Image image;
-		
-		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/images/white_bishop.png");
-		else
-			image = new Image("resources/images/black_bishop.png");
-		ImageView imageView = new ImageView();
-		imageView.setImage(image);
-		ui.getChildren().add(imageView);
-		initPatterns();
-	}
 	
-	private void initPatterns() {
+	@Override
+	public void initPatterns() {
 		Pattern p1 = new Pattern(Condition.MOVE, true);
 		p1.addMove(MoveType.FORWARD_LEFT);
 		patterns.add(p1);
@@ -352,5 +338,10 @@ public class Bishop extends Piece{
 			return false;
 		}
 		
+	}
+
+	@Override
+	public Piece clonePiece() {
+		return new Bishop(color, pieceID);
 	}
 }

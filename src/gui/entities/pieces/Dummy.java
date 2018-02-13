@@ -3,7 +3,6 @@ package gui.entities.pieces;
 import java.util.List;
 
 import gui.entities.Cell;
-import gui.entities.Piece;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Pattern;
@@ -11,7 +10,8 @@ import javafx.scene.layout.HBox;
 
 public class Dummy  extends Piece{
 	public Dummy(PieceColor color, String id) {
-		super(color, id);
+		super();
+		init(color, id, null);
 	}
 	
 	@Override
@@ -32,18 +32,6 @@ public class Dummy  extends Piece{
 	}
 
 	@Override
-	public HBox getUI() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void init() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public List<Pattern> getPatterns() {
 		// TODO Auto-generated method stub
 		return null;
@@ -59,6 +47,17 @@ public class Dummy  extends Piece{
 	public boolean isItEatable(Cell myCell, Cell newVictomCell, Cell oldVictomCell) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	@Override
+	public Piece clonePiece() {
+		return new Dummy(color, pieceID);
+	}
+
+	@Override
+	public void initPatterns() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

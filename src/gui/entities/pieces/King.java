@@ -5,7 +5,6 @@ import java.util.List;
 
 import gui.ChessBoardController;
 import gui.entities.Cell;
-import gui.entities.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.MoveType;
 import gui.entities.types.PieceColor;
@@ -18,26 +17,13 @@ import javafx.scene.layout.HBox;
 public class King extends Piece{
 	
 	public King(PieceColor color, String id) {
-		super(color, id);
+		super();
+		init(color, id, this.getClass().getSimpleName());
 		pieceValue = 4;
 	}
 	
 	@Override
-	public void init() {
-		ui = new HBox();
-		Image image;
-		
-		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/images/white_king.png");
-		else
-			image = new Image("resources/images/black_king.png");
-		ImageView imageView = new ImageView();
-		imageView.setImage(image);
-		ui.getChildren().add(imageView);
-		initPatterns();
-	}
-	
-	private void initPatterns() {
+	public void initPatterns() {
 		Pattern p1 = new Pattern(Condition.MOVE, false);
 		p1.addMove(MoveType.FORWARD_LEFT);
 		patterns.add(p1);
@@ -435,5 +421,10 @@ public class King extends Piece{
 			return false;
 		}
 		
+	}
+	
+	@Override
+	public Piece clonePiece() {
+		return new King(color, pieceID);
 	}
 }

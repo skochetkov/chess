@@ -6,7 +6,6 @@ import java.util.List;
 import gui.ChessBoardController;
 import gui.entities.Cell;
 import gui.entities.Move;
-import gui.entities.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
@@ -20,24 +19,12 @@ public class Pawn extends Piece{
 	//flag to temporary include potential moves and captures, must be reset back after each use
 	private boolean includePotentials = false;
 	
-	public Pawn(PieceColor color, String id) {
-		super(color, id);
-		pieceValue = 1;
-	}
 	
-	@Override
-	public void init() {
-		ui = new HBox();
-		Image image;
+	public Pawn(PieceColor color, String id) {
+		super();
+		init(color, id, this.getClass().getSimpleName());
 		
-		if(getColor() == PieceColor.WHITE)
-			image = new Image("resources/images/white_pawn.png");
-		else
-			image = new Image("resources/images/black_pawn.png");
-		ImageView imageView = new ImageView();
-		imageView.setImage(image);
-		ui.getChildren().add(imageView);
-		initPatterns();
+		pieceValue = 1;
 	}
 	
 	@Override
@@ -45,7 +32,8 @@ public class Pawn extends Piece{
 		return PieceType.PAWN;
 	}
 	
-	private void initPatterns() {
+	@Override
+	public void initPatterns() {
 		//if this is the first move, you are allowed to move one or two cells forward
 		Pattern p1 = new Pattern(Condition.FIRST_MOVE);
 		p1.addMove(MoveType.FORWARD);
@@ -311,5 +299,10 @@ public class Pawn extends Piece{
 			return false;
 		}
 		
+	}
+	
+	@Override
+	public Piece clonePiece() {
+		return new Pawn(color, pieceID);
 	}
 }

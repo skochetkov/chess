@@ -5,7 +5,7 @@ import java.util.List;
 import gui.ChessBoardController;
 import gui.entities.Cell;
 import gui.entities.Move;
-import gui.entities.Piece;
+import gui.entities.pieces.Piece;
 import gui.entities.types.Condition;
 import gui.entities.types.GameStatus;
 import gui.entities.types.MoveType;

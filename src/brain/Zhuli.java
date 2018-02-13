@@ -1,13 +1,13 @@
-package engine;
+package brain;
 
 import java.util.List;
 import java.util.Random;
 
 import api.ChessGameConnect;
 import gui.entities.Move;
-import gui.entities.Piece;
 import gui.entities.pieces.Bishop;
 import gui.entities.pieces.Knight;
+import gui.entities.pieces.Piece;
 import gui.entities.pieces.Queen;
 import gui.entities.pieces.Rook;
 import gui.entities.types.Condition;
@@ -37,7 +37,7 @@ public class Zhuli {
 		//initiate and assign brain
 		//this brain is just a processor and it doesn't have any memory, it doesn't care of who it belongs to
 		//it just calculates the best way to solve the concrete problem
-		//brain = new Brain1200(api);
+		//brain = new Brain1200(api, color);
 		brain = new Brain199(api);
 	}
 	

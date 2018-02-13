@@ -7,11 +7,11 @@ import java.util.List;
 import gui.entities.Cell;
 import gui.entities.Move;
 import gui.entities.Parameter;
-import gui.entities.Piece;
 import gui.entities.pieces.Bishop;
 import gui.entities.pieces.King;
 import gui.entities.pieces.Knight;
 import gui.entities.pieces.Pawn;
+import gui.entities.pieces.Piece;
 import gui.entities.pieces.Queen;
 import gui.entities.pieces.Rook;
 import gui.entities.types.Condition;
@@ -83,18 +83,17 @@ public class ChessBoardController {
 	public ChessBoardController clone() {
 		ChessBoardController cloned = new ChessBoardController();
 		Cell[][] cells2 = new Cell[8][8];
-		int count = 0;
 		
 		for(int row = 0; row < cells[0].length; row++)
 		{
-			count++;
 			for(int col = 0; col < cells.length; col++)
-		   {
-		      cells2[row][col] = new Cell(cells[row][col].getIsBlack(), null, //cells[row][col].getCellManager(), 
-		    		  cells[row][col].getCol(), cells[row][col].getRow());
-		      
-		      count++;
-		   }		   
+			{
+				Cell cell = new Cell(cells[row][col].getIsBlack(), null, //cells[row][col].getCellManager(), 
+						cells[row][col].getCol(), cells[row][col].getRow());
+				if(!cells[row][col].isEmpty())
+					cell.setPiece(cells[row][col].getPiece().clonePiece());
+				cells2[row][col] = cell;
+			}		   
 		}
 		cloned.setCells(cells2);
 		return cloned;
@@ -469,7 +468,7 @@ public class ChessBoardController {
 			opponentColor = PieceColor.BLACK;
 		
 		List<Move> goodMoves = new ArrayList<>();
-		Cell opponentKing = getPiecesByTypeAndColor(PieceType.KING, opponentColor).get(0);
+		//Cell opponentKing = getPiecesByTypeAndColor(PieceType.KING, opponentColor).get(0);
 		Cell myKing = getPiecesByTypeAndColor(PieceType.KING, color).get(0);
 		List<Move> possibleMoves = new ArrayList<>();
 		
