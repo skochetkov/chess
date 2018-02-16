@@ -1,7 +1,7 @@
-# chess
+# Chess
 This is purely my experiment and a first attempt to build computer chess game with Artificial Intelligence (Zhuli).  
 
-# First Idea:
+# First idea:
 First idea is to find best move - move with highest possible weight
 * 1 can be reusable for next brain (where each iece is accessed by highest weight to calculate the total rating of the position and than to define what move can improve the rating)
 * 1.1 Go through all moves and try to access them by weighting
