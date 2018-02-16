@@ -16,8 +16,8 @@ import javafx.scene.layout.HBox;
 
 public class Knight extends Piece{
 	
-	public Knight(PieceColor color, String id) {
-		super();
+	public Knight(ChessBoardController controller, PieceColor color, String id) {
+		super(controller);
 		init(color, id, this.getClass().getSimpleName());
 		pieceValue = 3;
 	}
@@ -79,7 +79,7 @@ public class Knight extends Piece{
 	}
 
 	private boolean isEmpty(Cell check, boolean includeImpossible, boolean isAttack) {
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(isAttack) {
 			if(temp != null && !temp.isEmpty() && (check.getPiece().getColor() != temp.getPiece().getColor()) ) {
@@ -268,7 +268,7 @@ public class Knight extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return false;
@@ -286,7 +286,7 @@ public class Knight extends Piece{
 	}
 
 	@Override
-	public Piece clonePiece() {
-		return new Knight(color, pieceID);
+	public Piece clonePiece(ChessBoardController controller) {
+		return new Knight(controller, color, pieceID);
 	}
 }

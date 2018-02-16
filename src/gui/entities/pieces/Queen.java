@@ -16,8 +16,8 @@ import javafx.scene.layout.HBox;
 
 public class Queen extends Piece{
 	
-	public Queen(PieceColor color, String id) {
-		super();
+	public Queen(ChessBoardController controller, PieceColor color, String id) {
+		super(controller);
 		init(color, id, this.getClass().getSimpleName());
 		pieceValue = 9;
 	}
@@ -66,7 +66,7 @@ public class Queen extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		//if cell is empty, it is empty for all regular moves (non attacks)
 		if(includeImpossible) {
 			return true;
@@ -168,7 +168,7 @@ public class Queen extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(temp != null && !temp.isEmpty() && (check.getPiece().getColor() != temp.getPiece().getColor()) ) {
 			return true;
@@ -391,7 +391,7 @@ public class Queen extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return true;
@@ -411,7 +411,7 @@ public class Queen extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return false;
@@ -428,7 +428,7 @@ public class Queen extends Piece{
 	}
 
 	@Override
-	public Piece clonePiece() {
-		return new Queen(color, pieceID);
+	public Piece clonePiece(ChessBoardController controller) {
+		return new Queen(controller, color, pieceID);
 	}
 }

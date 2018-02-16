@@ -49,6 +49,10 @@ public class ChessGameManager {
 		//now user should do first move
 		
 	}
+	
+	public ChessBoardController getController() {
+		return board;
+	}
 
 	public boolean isClickLegal() {
 		return true;

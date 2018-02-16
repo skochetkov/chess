@@ -5,6 +5,7 @@ import java.util.List;
 
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
+import gui.ChessBoardController;
 import gui.entities.Cell;
 import gui.entities.types.Pattern;
 import javafx.scene.image.Image;
@@ -12,6 +13,7 @@ import javafx.scene.image.ImageView;
 
 public abstract class Piece {
 	
+	protected ChessBoardController controller;
 	protected List<Pattern> patterns = new ArrayList<>();
 	protected String pieceID = "0";
 	protected PieceColor color;
@@ -19,8 +21,8 @@ public abstract class Piece {
 	protected int pieceValue = 1;
 	protected ImageView imageView;
 	
-	public Piece() {
-		
+	public Piece(ChessBoardController controller) {
+		this.controller = controller;
 	}
 	
 	public void init(PieceColor color, String id, String pieceName) {
@@ -49,7 +51,7 @@ public abstract class Piece {
 
 	public abstract boolean isItEatable(Cell myCell, Cell newVictomCell, Cell oldVictomCell);
 	
-	public abstract Piece clonePiece();
+	public abstract Piece clonePiece(ChessBoardController controller);
 	
 	public abstract void initPatterns();
 	

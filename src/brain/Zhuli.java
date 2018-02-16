@@ -177,10 +177,10 @@ public class Zhuli {
 				//return promotionType;
 				Piece[] options = new Piece[4];
 				Piece piece = move.getPiece();
-				options[0] = new Rook(color, "10"+piece.getId());
-				options[1] = new Knight(color, "10"+piece.getId());
-				options[2] = new Bishop(color, "10"+piece.getId());
-				options[3] = new Queen(color, "10"+piece.getId());
+				options[0] = new Rook(api.getBoard(), color, "10"+piece.getId());
+				options[1] = new Knight(api.getBoard(), color, "10"+piece.getId());
+				options[2] = new Bishop(api.getBoard(), color, "10"+piece.getId());
+				options[3] = new Queen(api.getBoard(), color, "10"+piece.getId());
 				
 				int selection = rand.nextInt(options.length); 
 				move.setPiece(options[selection]);

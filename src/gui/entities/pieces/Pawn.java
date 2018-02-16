@@ -20,8 +20,8 @@ public class Pawn extends Piece{
 	private boolean includePotentials = false;
 	
 	
-	public Pawn(PieceColor color, String id) {
-		super();
+	public Pawn(ChessBoardController controller, PieceColor color, String id) {
+		super(controller);
 		init(color, id, this.getClass().getSimpleName());
 		
 		pieceValue = 1;
@@ -79,7 +79,7 @@ public class Pawn extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(includeImpossible)
 			return true;
@@ -178,7 +178,7 @@ public class Pawn extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		//if cell is empty, it is empty for all regular moves (non attacks) 
 		//if cell is not empty but we assume that there is attack (which means that opposite color)- except potential attacks where cell might be empty
 		if(includePotentials && (temp.isEmpty() || (check.getPiece().getColor() != temp.getPiece().getColor()))) {
@@ -284,7 +284,7 @@ public class Pawn extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return false;
@@ -302,7 +302,7 @@ public class Pawn extends Piece{
 	}
 	
 	@Override
-	public Piece clonePiece() {
-		return new Pawn(color, pieceID);
+	public Piece clonePiece(ChessBoardController controller) {
+		return new Pawn(controller, color, pieceID);
 	}
 }

@@ -13,8 +13,8 @@ import gui.entities.types.Pattern;
 
 public class King extends Piece{
 	
-	public King(PieceColor color, String id) {
-		super();
+	public King(ChessBoardController controller, PieceColor color, String id) {
+		super(controller);
 		init(color, id, this.getClass().getSimpleName());
 		pieceValue = 4;
 	}
@@ -72,7 +72,7 @@ public class King extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		//if cell is empty, it is empty for all regular moves (non attacks)
 		if(includeImpossible) {
 			return true;
@@ -180,7 +180,7 @@ public class King extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(temp != null && !temp.isEmpty() && (check.getPiece().getColor() != temp.getPiece().getColor()) ) {
 			return true;
@@ -260,7 +260,7 @@ public class King extends Piece{
 				}
 				
 				if(isValidForAttack(temp)) {
-					Cell victim = ChessBoardController.cells[temp.getRow()][temp.getCol()];
+					Cell victim = controller.cells[temp.getRow()][temp.getCol()];
 					//temp = victim.copy();
 					moves.add(victim);
 					break;
@@ -383,7 +383,7 @@ public class King extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return true;
@@ -403,7 +403,7 @@ public class King extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return false;
@@ -421,7 +421,7 @@ public class King extends Piece{
 	}
 	
 	@Override
-	public Piece clonePiece() {
-		return new King(color, pieceID);
+	public Piece clonePiece(ChessBoardController controller) {
+		return new King(controller, color, pieceID);
 	}
 }

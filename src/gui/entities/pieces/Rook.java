@@ -16,8 +16,8 @@ import javafx.scene.layout.HBox;
 
 public class Rook extends Piece{
 		
-	public Rook(PieceColor color, String id) {
-		super();
+	public Rook(ChessBoardController controller, PieceColor color, String id) {
+		super(controller);
 		init(color, id, this.getClass().getSimpleName());
 		pieceValue = 5;
 	}
@@ -122,7 +122,7 @@ public class Rook extends Piece{
 	}
 	
 	private boolean isEmpty(Cell check, boolean includeImpossible) {
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		//if cell is empty, it is empty for all regular moves (non attacks)
 		if(includeImpossible) {
 			return true;
@@ -136,7 +136,7 @@ public class Rook extends Piece{
 	}
 	
 	private boolean isGoodForAttack(Cell check) {
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		//if cell is empty, it is empty for all regular moves (non attacks)
 		//if cell is not empty but we assume that there is attack (which means that opposite color)
 		
@@ -317,7 +317,7 @@ public class Rook extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return true;
@@ -337,7 +337,7 @@ public class Rook extends Piece{
 		if ((check.getCol() < 0 || check.getCol() > 7) || (check.getRow() < 0 || check.getRow() > 7))
 			return false;
 		
-		Cell temp = ChessBoardController.cells[check.getRow()][check.getCol()];
+		Cell temp = controller.cells[check.getRow()][check.getCol()];
 		
 		if(check.equals(oldVictomCell)) {
 			return false;
@@ -354,7 +354,7 @@ public class Rook extends Piece{
 	}
 	
 	@Override
-	public Piece clonePiece() {
-		return new Rook(color, pieceID);
+	public Piece clonePiece(ChessBoardController controller) {
+		return new Rook(controller, color, pieceID);
 	}
 }

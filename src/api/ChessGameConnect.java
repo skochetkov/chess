@@ -123,4 +123,8 @@ public class ChessGameConnect {
 	public ChessBoardController cloneBoard() {
 		return manager.cloneController();
 	}
+
+	public ChessBoardController getBoard() {
+		return manager.getController();
+	}
 }

@@ -2,14 +2,15 @@ package gui.entities.pieces;
 
 import java.util.List;
 
+import gui.ChessBoardController;
 import gui.entities.Cell;
 import gui.entities.types.PieceColor;
 import gui.entities.types.PieceType;
 import gui.entities.types.Pattern;
 
 public class Dummy  extends Piece{
-	public Dummy(PieceColor color, String id) {
-		super();
+	public Dummy(ChessBoardController controller, PieceColor color, String id) {
+		super(controller);
 		init(color, id, null);
 	}
 	
@@ -49,8 +50,8 @@ public class Dummy  extends Piece{
 	}
 	
 	@Override
-	public Piece clonePiece() {
-		return new Dummy(color, pieceID);
+	public Piece clonePiece(ChessBoardController controller) {
+		return new Dummy(controller, color, pieceID);
 	}
 
 	@Override
