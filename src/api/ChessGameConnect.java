@@ -2,14 +2,14 @@ package api;
 
 import java.util.List;
 
-import gui.ChessBoardController;
-import gui.entities.Cell;
-import gui.entities.Move;
-import gui.entities.pieces.Piece;
-import gui.entities.types.Condition;
-import gui.entities.types.GameStatus;
-import gui.entities.types.PieceColor;
-import gui.entities.types.PieceType;
+import game.ChessBoardController;
+import game.entities.Cell;
+import game.entities.Move;
+import game.entities.pieces.Piece;
+import game.entities.types.Condition;
+import game.entities.types.GameStatus;
+import game.entities.types.PieceColor;
+import game.entities.types.PieceType;
 import model.ChessGameManager;
 
 public class ChessGameConnect {

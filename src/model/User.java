@@ -1,8 +1,8 @@
 package model;
 
 import api.ChessGameConnect;
-import gui.ChessBoardController;
-import gui.entities.types.PieceColor;
+import game.ChessBoardController;
+import game.entities.types.PieceColor;
 
 public class User {
 	private ChessGameConnect api;

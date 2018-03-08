@@ -1,6 +1,6 @@
 package model;
 
-import gui.entities.Cell;
+import game.entities.Cell;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

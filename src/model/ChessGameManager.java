@@ -3,17 +3,20 @@ package model;
 import java.util.List;
 
 import api.ChessGameConnect;
+import brain.Assistant;
+import brain.Brain1200;
+import brain.BrainInterface;
 import brain.Zhuli;
-import gui.ChessBoardController;
-import gui.entities.Cell;
-import gui.entities.Move;
-import gui.entities.Parameter;
-import gui.entities.pieces.Piece;
-import gui.entities.types.PieceColor;
-import gui.entities.types.PieceType;
-import gui.entities.types.Condition;
-import gui.entities.types.GameStatus;
-import gui.entities.types.Requests;
+import game.ChessBoardController;
+import game.entities.Cell;
+import game.entities.Move;
+import game.entities.Parameter;
+import game.entities.pieces.Piece;
+import game.entities.types.Condition;
+import game.entities.types.GameStatus;
+import game.entities.types.PieceColor;
+import game.entities.types.PieceType;
+import game.entities.types.Requests;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import util.UIUtil;
@@ -38,10 +41,17 @@ public class ChessGameManager {
 	
 	private void initDefaultGame() {
 		//status = GameStatus.WHITE_MOVE;
-		
+		boolean withAssistant = true;
+			
 		//initialize user
 		user = new User(api, PieceColor.WHITE);
         user.initUser();
+        
+        if(withAssistant) {
+        		Assistant.setOn(true);
+        		Assistant.enableInfo(true);
+			Assistant.getAssistant().initAssistant(api, user);
+		}
         
         //initialize Zhuli
         zhuli = new Zhuli(api, PieceColor.BLACK);
@@ -76,7 +86,9 @@ public class ChessGameManager {
 			clearSelectedCellsExceptOne((Cell)param);
 			break;
 		case I_WAS_SELECTED_BY_USER:
-			whatOptionsUserHas((Cell)param);
+			if(Assistant.isOn()) {
+				Assistant.getAssistant().whatOptionsUserHas((Cell)param);
+			}
 			whatUserCanDo((Cell)param);
 			break;
 		case I_WAS_PROPOSED_BY_USER:
@@ -93,20 +105,6 @@ public class ChessGameManager {
 	
 	private void clearSelectedCells() {
 		board.clearSelectedCells();
-	}
-	
-	private void whatOptionsUserHas(Cell param) {
-		List<Move> moves = getAllPossibleMoves(param);
-		
-		if(moves.size() == 0) {
-			System.out.println("No Options!");
-			return;
-		}
-		
-		System.out.println("Options for " + moves.get(0).getPiece().getColor() + " " + moves.get(0).getPiece().getType() + ":");
-		for(Move move : moves) {
-			System.out.println(move.getCondition() + " " + move.getDistination().getNotation());
-		}
 	}
 	
 	private void whatUserCanDo(Cell param) {
@@ -193,6 +191,8 @@ public class ChessGameManager {
 			else {
 				param = getRealCell(param);
 				param.setSelected(false);
+				Assistant.getAssistant().clearOptionSelectedCells();
+				Assistant.getAssistant().clearPiecesAssessment();
 				return;
 			}
 		}
@@ -314,6 +314,9 @@ public class ChessGameManager {
 
 	public void doMove(Move move) {
 		board.doMove(move);
+		if(Assistant.isOn()) {
+			Assistant.getAssistant().clearOptionSelectedCells();
+		}
 	}
 	
 	public void doEnPassantMove(Move move) {
@@ -360,8 +363,9 @@ public class ChessGameManager {
 		//unselect previous cell
 		selected.resetPiece();
 		selected.setSelected(false);
-		
-
+		if(Assistant.isOn()) {
+			Assistant.getAssistant().clearOptionSelectedCells();
+		}
 		
 		//record en passant move
 		board.recordMove(move);

@@ -4,16 +4,16 @@ import java.util.List;
 import java.util.Random;
 
 import api.ChessGameConnect;
-import gui.entities.Move;
-import gui.entities.pieces.Bishop;
-import gui.entities.pieces.Knight;
-import gui.entities.pieces.Piece;
-import gui.entities.pieces.Queen;
-import gui.entities.pieces.Rook;
-import gui.entities.types.Condition;
-import gui.entities.types.GameStatus;
-import gui.entities.types.PieceColor;
-import gui.entities.types.PieceType;
+import game.entities.Move;
+import game.entities.pieces.Bishop;
+import game.entities.pieces.Knight;
+import game.entities.pieces.Piece;
+import game.entities.pieces.Queen;
+import game.entities.pieces.Rook;
+import game.entities.types.Condition;
+import game.entities.types.GameStatus;
+import game.entities.types.PieceColor;
+import game.entities.types.PieceType;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 

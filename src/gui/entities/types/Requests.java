@@ -1,8 +1,0 @@
-package gui.entities.types;
-
-public enum Requests {
-	CLEAR_ALL_SELECTED_CELLS, 
-	CLEAR_ALL_SELECTED_CELLS_EXCEPT_ONE, 
-	I_WAS_SELECTED_BY_USER, 
-	I_WAS_PROPOSED_BY_USER;
-}
