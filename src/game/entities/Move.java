@@ -91,4 +91,16 @@ public class Move implements Comparable<Move>{
             return -1;
         }
     }
+	
+	@Override
+	public String toString() {
+		return condition + ": " + piece + " from " + original.getNotation() + " to " + distination.getNotation(); 
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return (getPiece().equals(((Move)obj).getPiece()) && 
+				getDistination().equals(((Move)obj).getDistination()) &&
+				getOriginal().equals(((Move)obj).getOriginal()));
+	}
 }

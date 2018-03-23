@@ -87,4 +87,13 @@ public abstract class Piece {
 		return pieceValue;
 	}
 	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		return pieceID.equals(((Piece)obj).getId());
+	}
 }

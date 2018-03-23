@@ -139,8 +139,8 @@ public class Cell implements Parameter{
 		this.isOptionSelected = isOptionSelected;
 		
 		if(isOptionSelected) {
-			cell.setBorder(new Border(new BorderStroke(Color.TOMATO, BorderStrokeStyle.DASHED,
-                    null,new BorderWidths(2))));
+			cell.setBorder(new Border(new BorderStroke(Color.RED.darker(), BorderStrokeStyle.DOTTED,
+                    null,new BorderWidths(3))));
 			InnerShadow is = new InnerShadow();
 	        is.setOffsetX(2.0f);
 	        is.setOffsetY(2.0f);
@@ -166,9 +166,9 @@ public class Cell implements Parameter{
 		//t.setX(20.0f);
 		//t.setY(65.0f);
 		t.setText(attack + "/" + defend);
-		t.setFill(Color.YELLOW);
-		t.setFont(Font.font(null, FontWeight.BOLD, 16));
-		//t.setAlignment(Pos.CENTER);
+		t.setFill(Color.RED);
+		t.setFont(Font.font(null, FontWeight.BOLD, 14));
+		//t.setAlignment(Pos.TOP_RIGHT);
 		
 		Node n = cell.getChildren().get(0);
 		StackPane stackPane = new StackPane();
@@ -281,6 +281,11 @@ public class Cell implements Parameter{
 
 	public void setType(CellType type) {
 		this.type = type;
+	}
+	
+	@Override
+	public String toString() {
+		return getNotation();
 	}
 
 }

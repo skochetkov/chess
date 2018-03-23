@@ -3,6 +3,7 @@ package game;
 import java.util.ArrayList;
 import java.util.List;
 
+import brain.Assistant;
 import game.entities.Cell;
 import game.entities.Move;
 import game.entities.pieces.Bishop;
@@ -12,6 +13,7 @@ import game.entities.pieces.Pawn;
 import game.entities.pieces.Piece;
 import game.entities.pieces.Queen;
 import game.entities.pieces.Rook;
+import game.entities.types.CellType;
 import game.entities.types.Condition;
 import game.entities.types.GameStatus;
 import game.entities.types.MoveType;
@@ -109,11 +111,11 @@ public class ChessBoardController {
 		//Select test case
 		//testCase = TestCases.CASTLING_BLACK;
 		//testCase = TestCases.CASTLING_WHITE;
-		testCase = TestCases.PAWN_ADVANCES;
+		//testCase = TestCases.PAWN_ADVANCES;
 		//testCase = TestCases.PAWN_ADVANCES_BLACK;
 		//testCase = TestCases.EN_PASSANT_WHITE;
 		//testCase = TestCases.EN_PASSANT_BLACK;
-		//testCase = TestCases.WEIGHT_BLACK;
+		testCase = TestCases.WEIGHT_BLACK;
 		TestController.getTestCase(this, testCase, cells);
 		
 	} 
@@ -208,10 +210,36 @@ public class ChessBoardController {
 	public void replacePiece(Cell promotedPiece, Cell piece, Cell oldPiece) {
 		Cell newCell = getRealCell(promotedPiece);
 		newCell.setPiece(piece.getPiece());
+		//oldPiece.setPiece(piece.getPiece());
 		//cells[oldPiece.getRow()][oldPiece.getCol()].resetPiece();
 		//cells[oldPiece.getRow()][oldPiece.getCol()].setSelected(false);
-		doMove(new Move(newCell.getPiece(), newCell, oldPiece, Condition.MOVE));
+		doPromotionMove(new Move(newCell.getPiece(), oldPiece, newCell, Condition.PROMOTION));
 		
+	}
+	
+	public void doPromotionMove(Move move) {
+		//take its figure
+		Cell selected = move.getOriginal();
+		Cell newLocation = move.getDistination();
+		
+		Piece piece = getRealCell(newLocation).getPiece();
+		newLocation = getRealCell(newLocation);
+		log("###PROMOTION MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
+		
+		recordMove(move);
+		//and move piece to a new location
+		newLocation.setPiece(piece);
+		
+		//unselect previous cell
+		selected.resetPiece();
+		selected.setSelected(false);
+		newLocation.setOptionSelected(false);
+		newLocation.setSelected(selected.isSelected());
+		newLocation.setType(CellType.PROMOTED);
+		//doMove(move);
+		if(Assistant.isOn()) {
+			Assistant.getAssistant().clearOptionSelectedCells();
+		}
 	}
 	
 	public void doMove(Move move) {
@@ -220,21 +248,18 @@ public class ChessBoardController {
 		Cell newLocation = move.getDistination();
 		
 		Piece piece = getRealCell(selected).getPiece();
+		selected = getRealCell(selected);
 		newLocation = getRealCell(newLocation);
-		System.out.println("###MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
+		log("###MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
 		
 		recordMove(move);
-		//if it has opponents figure, eat it
-		//if(newLocation.getPiece() != null) {
-		//	newLocation.setPiece(piece);
-		//}
-		
-		//and move piece to a new location
-		newLocation.setPiece(piece);
 		
 		//unselect previous cell
 		selected.resetPiece();
 		selected.setSelected(false);
+		
+		//and move piece to a new location
+		newLocation.setPiece(piece);
 	}
 
 	public void setPieceToRealCell(Cell original, Piece piece) {
@@ -253,30 +278,30 @@ public class ChessBoardController {
 		
 		//Get the king
 		Cell king = getPiecesByTypeAndColor(PieceType.KING, color).get(0);
-		System.out.println("check if king can be defended by his pieces");
+		log("check if king can be defended by his pieces");
 		//TODO (exclude piece itself) if king can be defended by his pieces except the king itself
 		List<Move>  defendingMoves = getWhoCanDefendMe(king, color);
 		
 		if(defendingMoves.size() > 0) {
-			System.out.println("I can be saved!");
+			log("I can be saved!");
 		}
 		//get all king's moves and captures
 		List<Cell> safeMoves = getAllSafeMoves(king);
 		List<Cell> safeCaptures = getAllSafeCaptures(king);
-		System.out.println("Checking if the king has safe moves or safe captures....");
+		log("Checking if the king has safe moves or safe captures....");
 		
-		System.out.println("defendingMoves.size() : "+defendingMoves.size()+" safeMoves.size() : "+safeMoves.size()+" safeCaptures.size() : "+safeCaptures.size());
+		log("defendingMoves.size() : "+defendingMoves.size()+" safeMoves.size() : "+safeMoves.size()+" safeCaptures.size() : "+safeCaptures.size());
 		//rear case where there is no way to move
 		if(defendingMoves.size() > 0 || safeMoves.size() > 0 || safeCaptures.size() > 0) {
 			if(safeMoves.size() > 0) {
-				System.out.println("there is safe moves for the king");
+				log("there is safe moves for the king");
 				for(Cell mv : safeMoves) {
 					defendingMoves.add(new Move(king.getPiece(), king, mv, Condition.MOVE));
 				}
 			}
 			
 			if(safeCaptures.size() > 0) {
-				System.out.println("there is safe captures for the king");
+				log("there is safe captures for the king");
 				for(Cell mv : safeCaptures) {
 					defendingMoves.add(new Move(king.getPiece(), king, mv, Condition.ATTACK));
 				}
@@ -411,6 +436,19 @@ public class ChessBoardController {
 		return safeCaptures;
 	}
 	
+	public List<Move> getAllPossibleCaptures(Cell selected) {
+		Piece piece = selected.getPiece();
+		List<Move> allPossibleCaptures = new ArrayList<Move>(); 
+
+		List<Cell> captureMoves = piece.getAllCaptures(selected, false);
+		
+		for(Cell move : captureMoves) {
+			allPossibleCaptures.add(new Move(piece, selected, move, Condition.ATTACK));
+		}
+		
+		return allPossibleCaptures;
+	}
+	
 	public List<Cell> getAllSafeMoves(Cell piece) {
 		List<Cell> safeMoves = new ArrayList<>();
 		List<Cell> allMoves = piece.getPiece().getAllMoves(piece, false);
@@ -508,7 +546,7 @@ public class ChessBoardController {
 				}
 			}
 			
-			System.out.println("Possible moves for " + piece.getPiece().getType() + " ("+piece.getNotation()+"): " + possibleMoves.size());
+			log("Possible moves for " + piece.getPiece().getType() + " ("+piece.getNotation()+"): " + possibleMoves.size());
 			
 			if(possibleMoves.size() == 0) {
 				continue;
@@ -522,7 +560,7 @@ public class ChessBoardController {
 					continue;
 				}
 				
-				System.out.println(m.getPiece().getType() + " " + m.getOriginal().getNotation() + ":" + m.getDistination().getNotation());
+				log(m.getPiece().getType() + " " + m.getOriginal().getNotation() + ":" + m.getDistination().getNotation());
 				if(m.getPiece().getType() == PieceType.PAWN) {
 					MoveType promotionType = isPossiblyPromoted(m.getOriginal(), m.getDistination());
 						
@@ -669,6 +707,34 @@ public class ChessBoardController {
 			}
 		}
 		return listOfWhoCanDefendMe;
+	}
+	
+	public List<Move> getWhoCanEatThisPiece(Cell cell) {
+		
+		List<Move> listOfMyAttackers = new ArrayList<>();
+		PieceColor myColor;
+		
+		if(cell.getPiece().getColor() == PieceColor.BLACK) 
+			myColor = PieceColor.WHITE;
+		else
+			myColor = PieceColor.BLACK;
+		
+		List<Cell> listOfAllMyPieces = getPiecesByColor(myColor);
+		
+		//check if one of my pieces can beat it
+		for(Cell myPiece : listOfAllMyPieces) {
+			List<Cell> captureMoves = myPiece.getPiece().getAllCaptures(myPiece, false);
+			if(captureMoves.size() == 0)
+				continue;		
+			
+			for(Cell cm : captureMoves) {
+				if(cm.equals(cell)) {
+					listOfMyAttackers.add(new Move(myPiece.getPiece(), myPiece, cell, Condition.ATTACK));
+				}
+			}
+		}
+		
+		return listOfMyAttackers;
 	}
 	
 	public Move isMoveLegal(Cell selected, Cell newLocation) {
@@ -1030,11 +1096,16 @@ public class ChessBoardController {
 		
 		for(Cell p : path) {
 			if(p.equals(move.getDistination())) {
-				System.out.println("defending move: " + move.getOriginal() + " " + move.getDistination() + " " + move.getPiece());
+				log("defending move: " + move.getOriginal() + " " + move.getDistination() + " " + move.getPiece());
 				return true;
 			}
 				
 		}
 		return false;
+	}
+	
+	private void log(String logMessage) {
+		if(ChessGameManager.isDebugEnabled())
+			System.out.println(logMessage);
 	}
 }

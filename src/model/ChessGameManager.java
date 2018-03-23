@@ -12,6 +12,7 @@ import game.entities.Cell;
 import game.entities.Move;
 import game.entities.Parameter;
 import game.entities.pieces.Piece;
+import game.entities.types.CellType;
 import game.entities.types.Condition;
 import game.entities.types.GameStatus;
 import game.entities.types.PieceColor;
@@ -28,6 +29,10 @@ public class ChessGameManager {
 	private Zhuli zhuli;
 	private GameStatus status = GameStatus.NONE;
 	
+	//Configuration fields
+	private boolean withAssistant = false;
+	private static boolean debug = false;
+	
 	public ChessGameManager() {
 		board = new ChessBoardController();
 		board.initBoard(this);
@@ -41,7 +46,7 @@ public class ChessGameManager {
 	
 	private void initDefaultGame() {
 		//status = GameStatus.WHITE_MOVE;
-		boolean withAssistant = true;
+		
 			
 		//initialize user
 		user = new User(api, PieceColor.WHITE);
@@ -99,11 +104,11 @@ public class ChessGameManager {
 		}
 	}
 
-	private void clearSelectedCellsExceptOne(Cell param) {
+	public void clearSelectedCellsExceptOne(Cell param) {
 		board.clearSelectedCells(param);
 	}
 	
-	private void clearSelectedCells() {
+	public void clearSelectedCells() {
 		board.clearSelectedCells();
 	}
 	
@@ -196,6 +201,16 @@ public class ChessGameManager {
 				return;
 			}
 		}
+		//If Promotion
+		else if(status == GameStatus.WHITE_MOVE && param.getPiece() != null && param.getType() == CellType.PROMOTED) {
+			status = GameStatus.BLACK_MOVE;
+			param.setType(CellType.NONE);
+			param = getRealCell(param);
+			param.setSelected(false);
+			Assistant.getAssistant().clearOptionSelectedCells();
+			Assistant.getAssistant().clearPiecesAssessment();
+			
+		}
 		//if user is supposed to select figure with which to move (but we are not allowed to touch opponents pieces)
 		//in other words: it's our move, we haven't selected anything and we are not trying to select opponents piece
 		else if(status == GameStatus.WHITE_MOVE && !isCurrentPlayerHasSelectedCell && 
@@ -203,13 +218,13 @@ public class ChessGameManager {
 			param.setSelected(true);
 		}
 		else {
-			System.out.println("Unknown situation");
+			log("Unknown situation");
 			return;
 		}
 		
 		//this is supposed to be Zhuli role
 		if(status == GameStatus.BLACK_MOVE) {
-			//System.out.println("Lets pretend that Zhuli made a move. Now your turn!");
+			//log("Lets pretend that Zhuli made a move. Now your turn!");
 			zhuli.myTurn();
 			status = GameStatus.WHITE_MOVE;
 			
@@ -257,61 +272,6 @@ public class ChessGameManager {
 		return (getWhoCanDefendMe(piece, color).size() > 0)? true : false;
 	}
 	
-	/**
-	 * Use cases:
-	 * 	- a piece can be attacked by more than one opponents figure - need to check if all attackers can be neutralized 
-	 *  - any defender can defend by more than one moves, so we return list of moves, and not only defenders
-	 * @param piece
-	 * @param color
-	 * @return
-	 */
-	public List<Move> getWhoCanDefendMe(Cell piece, PieceColor color) {
-		return board.getWhoCanDefendMe(piece, color);
-	}
-
-	public boolean checkIfItIsCheck(GameStatus status) {
-		return board.checkIfItIsCheck(status);
-	}
-	
-	public List<Cell> getPiecesByTypeAndColor(PieceType piece, PieceColor color) {
-		return board.getPiecesByTypeAndColor(piece, color);
-	}
-	
-	public List<Cell> getWhoEndangersMe(Cell me) {
-		return board.getWhoEndangersMe(me);
-	}
-	
-	public List<Cell> getPiecesByColor(PieceColor color) {
-		return board.getPiecesByColor(color);
-	}
-	
-	/**
-	 * Bring the list of all defending pieces and their defending moves except piece itself
-	 * @param me
-	 * @return
-	 */
-	public List<Cell> getWhoCanDefendMe(Cell me) {
-		return board.getWhoCanDefendMe(me);
-	}
-
-	private boolean isCurrentPlayerHasSelectedCell() {
-		if(status == GameStatus.WHITE_MOVE) {
-			Cell selected = board.getSelectedCell();
-			if(selected != null && selected.getPiece() != null && selected.getPiece().getColor() == PieceColor.WHITE) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public Move isEnPassantAllowed(Cell selected) {
-		return board.isEnPassantAllowed(selected);
-	}
-
-	public Condition isCastlingAllowed(Cell selected, Cell newLocation) {
-		return board.isCastlingAllowed(selected, newLocation);
-	}
-
 	public void doMove(Move move) {
 		board.doMove(move);
 		if(Assistant.isOn()) {
@@ -327,7 +287,7 @@ public class ChessGameManager {
 		
 		Piece piece = getRealCell(selected).getPiece();
 		newLocation = getRealCell(newLocation);
-		System.out.println("###EN PASSANT! MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
+		log("###EN PASSANT! MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
 		
 
 		
@@ -376,7 +336,7 @@ public class ChessGameManager {
 		//take its figure
 		Piece piece = getRealCell(selected).getPiece();
 		newLocation = getRealCell(newLocation);
-		System.out.println("###TEMP MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
+		log("###TEMP MOVING " + piece.getColor() + " " + piece.getType() + ": from " + selected.getNotation() + " to " + newLocation.getNotation());
 		
 		newLocation.setPiece(piece);
 		
@@ -388,6 +348,65 @@ public class ChessGameManager {
 			return PieceColor.BLACK;
 		else
 			return PieceColor.WHITE;
+	}
+	
+	private boolean isCurrentPlayerHasSelectedCell() {
+		if(status == GameStatus.WHITE_MOVE) {
+			Cell selected = board.getSelectedCell();
+			if(selected != null && selected.getPiece() != null && selected.getPiece().getColor() == PieceColor.WHITE) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Use cases:
+	 * 	- a piece can be attacked by more than one opponents figure - need to check if all attackers can be neutralized 
+	 *  - any defender can defend by more than one moves, so we return list of moves, and not only defenders
+	 * @param piece
+	 * @param color
+	 * @return
+	 */
+	public List<Move> getWhoCanDefendMe(Cell piece, PieceColor color) {
+		return board.getWhoCanDefendMe(piece, color);
+	}
+
+	public boolean checkIfItIsCheck(GameStatus status) {
+		return board.checkIfItIsCheck(status);
+	}
+	
+	public List<Cell> getPiecesByTypeAndColor(PieceType piece, PieceColor color) {
+		return board.getPiecesByTypeAndColor(piece, color);
+	}
+	
+	public List<Cell> getWhoEndangersMe(Cell me) {
+		return board.getWhoEndangersMe(me);
+	}
+	
+
+	public List<Move> getWhoCanEatThisPiece(Cell cell) {
+		return board.getWhoCanEatThisPiece(cell);
+	}
+	public List<Cell> getPiecesByColor(PieceColor color) {
+		return board.getPiecesByColor(color);
+	}
+	
+	/**
+	 * Bring the list of all defending pieces and their defending moves except piece itself
+	 * @param me
+	 * @return
+	 */
+	public List<Cell> getWhoCanDefendMe(Cell me) {
+		return board.getWhoCanDefendMe(me);
+	}
+
+	public Move isEnPassantAllowed(Cell selected) {
+		return board.isEnPassantAllowed(selected);
+	}
+
+	public Condition isCastlingAllowed(Cell selected, Cell newLocation) {
+		return board.isCastlingAllowed(selected, newLocation);
 	}
 
 	public Cell getRealCell(Cell distination) {
@@ -442,4 +461,14 @@ public class ChessGameManager {
 	public ChessBoardController cloneController() {
 		return board.clone();
 	}
+	
+	public static boolean isDebugEnabled() {
+		return debug;
+	}
+	
+	private void log(String logMessage) {
+		if(ChessGameManager.isDebugEnabled())
+			System.out.println(logMessage);
+	}
+
 }

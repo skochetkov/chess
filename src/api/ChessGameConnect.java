@@ -63,6 +63,10 @@ public class ChessGameConnect {
 	public List<Cell> getWhoCanDefendMe(Cell me) {
 		return manager.getWhoCanDefendMe(me);
 	}
+	
+	public List<Move> getWhoCanEatThisPiece(Cell cell) {
+		return manager.getWhoCanEatThisPiece(cell);
+	}
 
 	public List<Cell> getAllSafeCaptures(Cell piece) {
 		return manager.getAllSafeCaptures(piece);
@@ -126,5 +130,13 @@ public class ChessGameConnect {
 
 	public ChessBoardController getBoard() {
 		return manager.getController();
+	}
+	
+	public void clearSelectedCellsExceptOne(Cell param) {
+		manager.clearSelectedCellsExceptOne(param);
+	}
+	
+	public void clearSelectedCells() {
+		manager.clearSelectedCells();
 	}
 }

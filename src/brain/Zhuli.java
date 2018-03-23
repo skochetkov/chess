@@ -51,46 +51,17 @@ public class Zhuli {
 			return;
 		
 		System.out.println("Zhuli is thinking... Please wait....");
-		
-		//imitation of thinking
-		//TODO - do not forget to remove it when it really slows down
-		/*for(int i = 0; i < 100000; i++) {
-			for(int j = 0; j < 10000; j++) {
-				for(int k = 0; k < 1000; k++) {
-					;
-				}
-			}
-		}*/
-		
-		//first, Zhuli checks if she is in danger
-		if(api.checkIfItIsCheck(GameStatus.BLACK_MOVE)) {
-			
-			System.out.println("It is check, now I am checking if it is mate!");
-			List<Move> moves = api.checkIfItIsMate(GameStatus.BLACK_MOVE);
-			if(moves.size() == 0) {
-				api.changeStatus(GameStatus.GAME_OVER);
-				Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setTitle("");
-				alert.setHeaderText("Mate Alert");
-				String s = "This is mate buddy! I gave up:-(";
-				alert.setContentText(s);
-				alert.show();
-				return;
-			}
-			else {
-				/*Alert alert = new Alert(AlertType.INFORMATION);
-				alert.setTitle("");
-				alert.setHeaderText("Check Alert");
-				String s = "Oh, my King is uder attack dear?";
-				alert.setContentText(s);
-				alert.show();*/
-				Move saverMove = brain.saveMyKing(moves);
-				api.doMove(saverMove);
-				return;
-			}
-			
+
+		if(brain.checkForExceptions() == Condition.MATE) {
+			api.changeStatus(GameStatus.GAME_OVER);
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("");
+			alert.setHeaderText("Mate Alert");
+			String s = "This is mate buddy! I gave up:-(";
+			alert.setContentText(s);
+			alert.show();
+			return;
 		}
-		
 		
 		Move move = getGoodMove();
 		Condition condition = move.getCondition() ;
@@ -132,22 +103,19 @@ public class Zhuli {
 			alert.show();
 			return;
 		}
-		//if there is no "good" move, then just do random move
-		/*while(true) {
-			int value = rand.nextInt(pieces.size()); 
-			selected = pieces.get(value);
-			
-			List<Move> possibleMoves = api.getAllPossibleMoves(selected);
-			
-			if(possibleMoves.size() > 0) {
-				int mv = rand.nextInt(possibleMoves.size()); 
-				move = possibleMoves.get(mv);
-				//replace dummy cell with a real one
-				move.setDistination(api.getRealCell(move.getDistination()));
-				api.doMove(possibleMoves.get(mv));
-				break;
-			}
-		}*/
+		
+		// One more time to check if I didn't fix the dangerous situation
+		Condition conditionAfterMove = brain.checkForExceptions();
+		if(conditionAfterMove == Condition.MATE || conditionAfterMove == Condition.CHECK) {
+			api.changeStatus(GameStatus.GAME_OVER);
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("");
+			alert.setHeaderText("Mate Alert");
+			String s = "This is mate buddy! I gave up:-(";
+			alert.setContentText(s);
+			alert.show();
+			return;
+		}
 	}
 	
 	private List<Move> getGoodMoves() {
@@ -167,7 +135,8 @@ public class Zhuli {
 		///////////////////////////////// PLUG IN BRAIN ///////////////////////////////////////////////////
 		
 		
-		Move move = brain.thinkForTheBestMove(goodMoves);
+		//Move move = brain.thinkForTheBestMove(goodMoves);
+		Move move = brain.rankForTheBestMove(color);
 		
 		///////////////////////////////// BRAIN IS PLUGGED IN ////////////////////////////////
 		
