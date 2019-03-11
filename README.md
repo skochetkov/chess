@@ -34,3 +34,11 @@ Piece power consists of:
  # TODO
 - Logs with debug option on/off in config or main: enter/exit functions, all useful information
 
+# Third idea
+Introducing Memory that stores:
+- All events in life (no event is lost)
+
+One of the main part of Memory is called Experience which is a collection of memory events.
+- Each event consist of Content, Appraisal plus one or more links to associations (similar events) that builds a chain of related (associated) events 
+- There is no event type as it is hard categorization which needs to be avoided. Instead, events are grouped by associations (similar events) which might have links to other, unrelated events 
+
