@@ -35,10 +35,22 @@ Piece power consists of:
 - Logs with debug option on/off in config or main: enter/exit functions, all useful information
 
 # Third idea
+## Memory
 Introducing Memory that stores:
 - All events in life (no event is lost)
 
+## Experience 
 One of the main part of Memory is called Experience which is a collection of memory events.
 - Each event consist of Content, Appraisal plus one or more links to associations (similar events) that builds a chain of related (associated) events 
 - There is no event type as it is hard categorization which needs to be avoided. Instead, events are grouped by associations (similar events) which might have links to other, unrelated events 
+- All events in Experience are assessed when they are stored - no modifications allowed after assessment - that simulates mosaic of the experience and forms so called Character - muliti-perosnality. 
 
+
+## Perception
+It is the smallest, simplest and basic entity of Experience. Perceptions is not evaluated and assessed.
+
+## Fragment
+a minimum logical grouping of perceptions is called Fragment. Fragment has temporary assessemnt which is cleared when an event is formed.
+
+## Event 
+A group of Fragments form Event. All Fragements are assessed before forming Event and Event is scored and classified. After that, all fragments are cleared.
